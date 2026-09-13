@@ -1,5 +1,5 @@
 import Model from 'flarum/common/Model';
-import type { ConditionData } from '@xypp-collector/common/types/data';
+import type { ConditionData } from '../../collector/common/types/data';
 
 
 export default class TrustLevel extends Model {

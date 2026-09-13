@@ -6,8 +6,8 @@ import TrustLevel from '../../common/models/TrustLevel';
 import { showIf } from '../../common/utils/NodeUtil';
 import Stream from 'flarum/common/utils/Stream';
 
-import type { ConditionData } from '@xypp-collector/common/types/data';
-import { ConditionConfigure } from '@xypp-collector/admin';
+import type { ConditionData } from '../../collector/common/types/data';
+import { ConditionConfigure } from '../../collector/admin';
 import Group from 'flarum/common/models/Group';
 
 export default class editModal extends Modal<{

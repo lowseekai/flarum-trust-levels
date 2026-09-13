@@ -1,3 +1,3 @@
-module.exports = require('flarum-webpack-config')({
-    useExtensions: ['xypp-collector']
-});
+const config = require('flarum-webpack-config')();
+
+module.exports = config;

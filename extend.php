@@ -45,15 +45,11 @@ use Xypp\TrustLevels\Utils\TrustLevelUtils;
 return array_merge([
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
-        ->css(__DIR__ . '/less/forum.less'),
-    (new Extend\Frontend('forum'))
-        ->js(__DIR__ . '/js/dist/collector/forum.js')
+        ->css(__DIR__ . '/less/forum.less')
         ->css(__DIR__ . '/less/collector/forum.less'),
     (new Extend\Frontend('admin'))
         ->js(__DIR__ . '/js/dist/admin.js')
-        ->css(__DIR__ . '/less/admin.less'),
-    (new Extend\Frontend('admin'))
-        ->js(__DIR__ . '/js/dist/collector/admin.js')
+        ->css(__DIR__ . '/less/admin.less')
         ->css(__DIR__ . '/less/collector/admin.less'),
     new Extend\Locales(__DIR__ . '/locale'),
     new Extend\Locales(__DIR__ . '/locale/collector'),

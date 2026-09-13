@@ -3,7 +3,7 @@ import app from 'flarum/admin/app';
 import TrustLevel from '../../common/models/TrustLevel';
 import Button from 'flarum/common/components/Button';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
-import { HumanizeUtils } from '@xypp-collector/forum';
+import { HumanizeUtils } from '../../collector/forum';
 import Group from 'flarum/common/models/Group';
 import { showIf } from '../../common/utils/NodeUtil';
 import editModal from './editModal';

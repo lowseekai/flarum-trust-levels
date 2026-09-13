@@ -4,8 +4,8 @@ import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import app from 'flarum/forum/app';
 import User from 'flarum/common/models/User';
 import Placeholder from 'flarum/common/components/Placeholder';
-import { Condition, getConditionMap, getConditions, HumanizeUtils, OPERATOR, userValueUtil, CALCULATE } from '@xypp-collector/forum';
-import { type ConditionData } from '@xypp-collector/common/types/data';
+import { Condition, getConditionMap, getConditions, HumanizeUtils, OPERATOR, userValueUtil, CALCULATE } from '../../collector/forum';
+import { type ConditionData } from '../../collector/common/types/data';
 import TrustLevel from '../../common/models/TrustLevel';
 import { showIf } from '../../common/utils/NodeUtil';
 
