@@ -119,6 +119,8 @@ return array_merge([
         ->default("xypp.collector.invalid_tags", "{}")
         ->default("xypp.collector.custom-global-update", false)
         ->default("xypp.collector.use_custom", false)
+        ->default("xypp.localize-date.timezone", "UTC")
         ->serializeToForum("xypp.collector.max_keep", "xypp.collector.max_keep")
+        ->serializeToForum("xypp.localize-date.timezone", "xypp.localize-date.timezone")
 ], require __DIR__ . '/src/Collector/Integration/Integrations.php',
     require __DIR__ . '/src/Collector/Custom/extend.php');

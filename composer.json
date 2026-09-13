@@ -8,11 +8,11 @@
     "license": "GPL-3.0",
     "require": {
         "flarum/core": "^2.0.0-rc.8",
-        "nxp/math-executor": "^2.3",
-        "xypp/flarum-localize-date-lib": "*"
+        "nxp/math-executor": "^2.3"
     },
     "replace": {
-        "xypp/collector": "*"
+        "xypp/collector": "*",
+        "xypp/flarum-localize-date-lib": "*"
     },
     "authors": [
         {
@@ -24,7 +24,8 @@
     "autoload": {
         "psr-4": {
             "Xypp\\TrustLevels\\": "src/",
-            "Xypp\\Collector\\": "src/Collector/"
+            "Xypp\\Collector\\": "src/Collector/",
+            "Xypp\\LocalizeDate\\": "src/LocalizeDate/"
         },
         "files": [
             "src/collector-classMappings.php"
