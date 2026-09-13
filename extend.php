@@ -11,24 +11,21 @@
 
 namespace Xypp\TrustLevels;
 
-use Flarum\Api\Controller\ShowUserController;
-use Flarum\Api\Serializer\UserSerializer;
+use Flarum\Api\Endpoint;
+use Flarum\Api\Resource\NotificationResource;
+use Flarum\Api\Resource\UserResource;
+use Flarum\Api\Schema;
 use Flarum\Extend;
 use Flarum\User\User;
 use Xypp\Collector\Event\ConditionChange;
 use Xypp\Collector\Event\DailyUpdate;
 use Xypp\Collector\Event\DebugInfo;
-use Xypp\LocalizeDate\Console\DateChangeCommand;
-use Xypp\TrustLevels\Api\Controller\CreateTrustLevel;
-use Xypp\TrustLevels\Api\Controller\DeleteTrustLevel;
-use Xypp\TrustLevels\Api\Controller\EditTrustLevel;
-use Xypp\TrustLevels\Api\Controller\ListTrustLevel;
-use Xypp\TrustLevels\Api\Controller\SortTrustLevel;
-use Xypp\TrustLevels\Api\Serializer\TrustLevelSerializer;
+use Xypp\TrustLevels\Api\Resource\TrustLevelResource;
 use Xypp\TrustLevels\Console\UpdateLevel;
 use Xypp\TrustLevels\Listener\DayChange;
 use Xypp\TrustLevels\Listener\Debug;
 use Xypp\TrustLevels\Notification\TrustLevelChangeNotification;
+use Xypp\TrustLevels\Utils\TrustLevelUtils;
 
 return [
     (new Extend\Frontend('forum'))
@@ -40,16 +37,28 @@ return [
     new Extend\Locales(__DIR__ . '/locale'),
     (new Extend\Model(User::class))
         ->hasOne('trustLevel', TrustLevel::class, "level", "trust_level"),
-    (new Extend\ApiSerializer(UserSerializer::class))
-        ->hasOne("trustLevel", TrustLevelSerializer::class),
-    (new Extend\ApiController(ShowUserController::class))
-        ->addOptionalInclude(['trustLevel', 'trustLevel.next']),
-    (new Extend\Routes('api'))
-        ->get("/trust-levels", "trust-levels.list", ListTrustLevel::class)
-        ->post("/trust-levels", "trust-levels.create", CreateTrustLevel::class)
-        ->post("/trust-levels/sort", "trust-levels.sort", SortTrustLevel::class)
-        ->patch("/trust-levels/{id}", "trust-levels.edit", EditTrustLevel::class)
-        ->delete("/trust-levels/{id}", "trust-levels.delete", DeleteTrustLevel::class),
+    new Extend\ApiResource(TrustLevelResource::class),
+    (new Extend\ApiResource(UserResource::class))
+        ->fields(function () {
+            return [
+                Schema\Relationship\ToOne::make('trustLevel')
+                    ->type('trust-levels')
+                    ->includable()
+                    ->get(fn (User $user) => TrustLevelUtils::getTrustLevel($user)),
+            ];
+        })
+        ->endpoint(['show', 'index', 'update'], function (Endpoint\Endpoint $endpoint) {
+            return $endpoint->eagerLoad('trustLevel');
+        }),
+    (new Extend\ApiResource(NotificationResource::class))
+        // Notifications render the sender's badges. The core notification
+        // resource only includes fromUser, so nested group resources must be
+        // part of the default include as well.
+        ->endpoint([Endpoint\Show::class, Endpoint\Index::class], function (Endpoint\Show|Endpoint\Index $endpoint): Endpoint\Show|Endpoint\Index {
+            return $endpoint
+                ->addDefaultInclude(['fromUser.groups'])
+                ->eagerLoad('fromUser.groups');
+        }),
     (new Extend\Event)
         ->listen(ConditionChange::class, \Xypp\TrustLevels\Listener\ConditionChange::class)
         ->listen(DailyUpdate::class, DayChange::class)
@@ -57,7 +66,7 @@ return [
     (new Extend\Console)
         ->command(UpdateLevel::class),
     (new Extend\Notification)
-        ->type(TrustLevelChangeNotification::class, TrustLevelSerializer::class, ['alert']),
+        ->type(TrustLevelChangeNotification::class, ['alert']),
     (new Extend\Settings)
         ->default("xypp-trust-levels.no-auto-update", false)
 ];

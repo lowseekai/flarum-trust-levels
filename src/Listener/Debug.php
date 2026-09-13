@@ -1,14 +1,12 @@
 <?php
 
 namespace Xypp\TrustLevels\Listener;
+
 use Flarum\User\User;
 use Illuminate\Console\Command;
 use Xypp\Collector\Condition;
-use Xypp\Collector\Event\DailyUpdate;
 use Xypp\Collector\Event\DebugInfo;
-use Xypp\Collector\Helper\CommandContextHelper;
 use Xypp\Collector\Helper\ConditionHelper;
-use Xypp\LocalizeDate\Event\DateChangeEvent;
 use Xypp\TrustLevels\TrustLevel;
 use Xypp\TrustLevels\TrustLevelCondition;
 use Xypp\TrustLevels\Utils\TrustLevelConditionUtils;
@@ -37,12 +35,18 @@ class Debug
     protected function debugForLevel(TrustLevel $currentLevel, User $user, Command $command)
     {
         $command->info("Checking conditions for level $currentLevel->name");
-        $conditionNames = TrustLevelCondition::where("trust_level_id", $currentLevel->id)->get(["condition_name"]);
-        $conditions = Condition::whereIn("name", $conditionNames)->where("user_id", $user->id)->get();
+        $conditionNames = TrustLevelCondition::query()
+            ->where("trust_level_id", $currentLevel->id)
+            ->pluck("condition_name")
+            ->all();
+        $conditions = Condition::query()
+            ->whereIn("name", $conditionNames)
+            ->where("user_id", $user->id)
+            ->get();
 
         $currentTime = $this->conditionHelper->cz->now();
 
-        TrustLevelConditionUtils::eachConditions($currentLevel->conditions, function ($name, $operator, $value, $calculate, $span) use ($conditions, $command, $currentTime) {
+        TrustLevelConditionUtils::eachConditions($currentLevel->conditions ?? [], function ($name, $operator, $value, $calculate, $span) use ($conditions, $command, $currentTime) {
             $command->info(" # Checking $name ($span  c->$calculate)");
             $currentCondition = $conditions->where("name", $name)->first();
             $conditionDefine = $this->conditionHelper->getConditionDefinition($name);

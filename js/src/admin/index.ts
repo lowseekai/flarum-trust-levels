@@ -1,8 +1,4 @@
-import app from 'flarum/admin/app';
+import Extend from 'flarum/common/extenders';
 import adminPage from './components/adminPage';
 
-app.initializers.add('xypp/flarum-trust-levels', () => {
-  app.extensionData
-    .for('xypp-trust-levels')
-    .registerPage(adminPage);
-});
+export default [new Extend.Admin().page(adminPage)];

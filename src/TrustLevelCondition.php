@@ -1,8 +1,9 @@
 <?php
 
 namespace Xypp\TrustLevels;
+
 use Flarum\Database\AbstractModel;
-use Flarum\User\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 
 /**
@@ -12,6 +13,12 @@ use Flarum\User\User;
 class TrustLevelCondition extends AbstractModel
 {
     protected $table = 'trust_level_condition';
+    public $timestamps = false;
 
-    protected $fillable = ['trust_level_id',"condition_name"];
+    protected $fillable = ['trust_level_id', 'condition_name'];
+
+    public function trustLevel(): BelongsTo
+    {
+        return $this->belongsTo(TrustLevel::class, 'trust_level_id');
+    }
 }

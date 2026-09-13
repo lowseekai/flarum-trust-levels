@@ -1,9 +1,88 @@
-.xypp-trust-levels-adminPage-table{
+.xypp-trust-levels-adminPage-table {
     width: 100%;
-    white-space: nowrap;
+    table-layout: fixed;
+
+    col {
+        box-sizing: border-box;
+    }
+
+    th,
+    td {
+        box-sizing: border-box;
+        padding: 10px 15px;
+        vertical-align: middle;
+        text-align: left;
+    }
+
+    .xypp-trust-levels-adminPage-table-col-id,
+    .xypp-trust-levels-adminPage-table-id {
+        width: 6%;
+        text-align: center;
+    }
+
+    .xypp-trust-levels-adminPage-table-col-icon,
+    .xypp-trust-levels-adminPage-table-icon {
+        width: 8%;
+        text-align: center;
+    }
+
+    .xypp-trust-levels-adminPage-table-col-name {
+        width: 22%;
+    }
+
+    .xypp-trust-levels-adminPage-table-col-level,
+    .xypp-trust-levels-adminPage-table-level {
+        width: 12%;
+        text-align: center;
+    }
+
+    .xypp-trust-levels-adminPage-table-col-group {
+        width: 22%;
+    }
+
+    .xypp-trust-levels-adminPage-table-col-operation {
+        width: 30%;
+    }
+
+    .xypp-trust-levels-adminPage-table-name,
+    .xypp-trust-levels-adminPage-table-group {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .xypp-trust-levels-adminPage-table-operation {
+        text-align: center;
+    }
+
+    .xypp-trust-levels-adminPage-table-operation {
+        white-space: nowrap;
+    }
+
+    .xypp-trust-levels-adminPage-table-operation .Button {
+        margin: 0 4px 4px 0;
+    }
+
+    .xypp-trust-levels-adminPage-table-footer > td {
+        padding-top: 12px;
+    }
+
+    .xypp-trust-levels-adminPage-table-footer-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 34px;
+    }
 }
+
 @media (min-width: 768px) {
     .level-modal {
         max-width: 1080px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .xypp-trust-levels-adminPage-table {
+        min-width: 720px;
     }
 }

@@ -1,34 +1,48 @@
 <?php
 
 namespace Xypp\TrustLevels\Utils;
+
 use Flarum\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Xypp\Collector\Condition;
-use Xypp\ForumQuests\Helper\ConditionHelper;
+use Xypp\Collector\Helper\ConditionHelper;
 use Xypp\TrustLevels\TrustLevel;
 use Xypp\TrustLevels\TrustLevelCondition;
 
 class TrustLevelConditionUtils
 {
-
-    public static function eachConditions(array $conditions, callable $callback)
+    public static function eachConditions(?array $conditions, callable $callback): void
     {
-        foreach ($conditions as $condition) {
+        foreach ($conditions ?? [] as $condition) {
+            if (! is_array($condition)) {
+                continue;
+            }
+
+            $name = Arr::get($condition, 'name');
+
+            if (! is_string($name) || trim($name) === '') {
+                continue;
+            }
+
             $callback(
-                Arr::get($condition, "name"),
-                Arr::get($condition, "operator"),
-                Arr::get($condition, "value"),
-                intval(Arr::get($condition, "calculate", 1)),
-                Arr::get($condition, "span", null)
+                $name,
+                Arr::get($condition, 'operator'),
+                Arr::get($condition, 'value'),
+                intval(Arr::get($condition, 'calculate', 1)),
+                Arr::get($condition, 'span')
             );
         }
     }
 
-    public static function updateTrustLevelCondition(TrustLevel $trustLevel)
+    public static function updateTrustLevelCondition(TrustLevel $trustLevel): void
     {
-        TrustLevelCondition::where("trust_level_id", $trustLevel->id)->delete();
+        TrustLevelCondition::query()->where('trust_level_id', $trustLevel->id)->delete();
 
-        self::eachConditions($trustLevel->conditions, function ($name, $operator, $value, $calculate, $span) use ($trustLevel) {
+        self::eachConditions($trustLevel->conditions ?? [], function ($name, $operator, $value, $calculate, $span) use ($trustLevel) {
+            if (! $name) {
+                return;
+            }
+
             $condition = new TrustLevelCondition();
             $condition->trust_level_id = $trustLevel->id;
             $condition->condition_name = $name;
@@ -36,12 +50,12 @@ class TrustLevelConditionUtils
         });
     }
 
-    public static function removeTrustLevelCondition(TrustLevel $trustLevel)
+    public static function removeTrustLevelCondition(TrustLevel $trustLevel): void
     {
-        TrustLevelCondition::where("trust_level_id", $trustLevel->id)->delete();
+        TrustLevelCondition::query()->where('trust_level_id', $trustLevel->id)->delete();
     }
 
-    public static function checkFirstCondition(array $conditions, Condition $condition)
+    public static function checkFirstCondition(?array $conditions, Condition $condition): bool
     {
         /**
          * @var ConditionHelper $conditionHelper
@@ -57,7 +71,7 @@ class TrustLevelConditionUtils
         return $result;
     }
 
-    public static function checkConditions(array $conditions, Collection $condition)
+    public static function checkConditions(?array $conditions, Collection $condition): bool
     {
         /**
          * @var ConditionHelper $conditionHelper

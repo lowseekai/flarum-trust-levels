@@ -2,16 +2,17 @@
 
 namespace Xypp\TrustLevels\Notification;
 
+use Flarum\Database\AbstractModel;
+use Flarum\Notification\AlertableInterface;
 use Flarum\Notification\Blueprint\BlueprintInterface;
 use Flarum\User\User;
-use Xypp\ForumQuests\QuestInfo;
 use Xypp\TrustLevels\TrustLevel;
 
-class TrustLevelChangeNotification implements BlueprintInterface
+class TrustLevelChangeNotification implements BlueprintInterface, AlertableInterface
 {
-    public $user;
-    public $trustLevel;
-    public $data;
+    public User $user;
+    public TrustLevel $trustLevel;
+    public array $data;
 
     public function __construct(TrustLevel $trustLevel, User $user, ?TrustLevel $fromLevel)
     {
@@ -26,27 +27,27 @@ class TrustLevelChangeNotification implements BlueprintInterface
         }
     }
 
-    public function getSubject()
+    public function getSubject(): ?AbstractModel
     {
         return $this->trustLevel;
     }
 
-    public function getFromUser()
+    public function getFromUser(): ?User
     {
         return $this->user;
     }
 
-    public function getData()
+    public function getData(): array
     {
         return $this->data;
     }
 
-    public static function getType()
+    public static function getType(): string
     {
         return 'trust_level_change';
     }
 
-    public static function getSubjectModel()
+    public static function getSubjectModel(): string
     {
         return TrustLevel::class;
     }

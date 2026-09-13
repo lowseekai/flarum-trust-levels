@@ -20,7 +20,7 @@ class UpdateLevel extends Command
     public function handle()
     {
         $this->setProcessTitle("Re-calc Refresh time.");
-        $this->withProgressBar(User::all(), function (User $actor) {
+        $this->withProgressBar(User::query()->cursor(), function (User $actor) {
             TrustLevelUtils::checkLevel($actor);
         });
         $this->info("Done");

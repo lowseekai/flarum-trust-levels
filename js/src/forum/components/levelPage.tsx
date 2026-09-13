@@ -2,15 +2,8 @@ import Mithril from 'mithril';
 import UserPage from 'flarum/forum/components/UserPage';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import app from 'flarum/forum/app';
-import Button from 'flarum/common/components/Button';
 import User from 'flarum/common/models/User';
-import avatar from 'flarum/common/helpers/avatar';
-import username from 'flarum/common/helpers/username';
-import Link from 'flarum/common/components/Link';
 import Placeholder from 'flarum/common/components/Placeholder';
-import humanTime from 'flarum/common/helpers/humanTime';
-import Alert from 'flarum/common/components/Alert';
-import Switch from 'flarum/common/components/Switch'
 import { Condition, getConditionMap, getConditions, HumanizeUtils, OPERATOR, userValueUtil, CALCULATE } from '@xypp-collector/forum';
 import { type ConditionData } from '@xypp-collector/common/types/data';
 import TrustLevel from '../../common/models/TrustLevel';
@@ -58,6 +51,24 @@ export class levelPage extends UserPage {
         this.loadData();
     }
     async loadData() {
+        this.fields = [];
+        this.fieldText = [];
+        this.fieldValue = [];
+        this.current = {
+            key: 'current',
+            title: '',
+            names: [],
+            target: [],
+            achieved: []
+        };
+        this.next = {
+            key: 'next',
+            title: '',
+            names: [],
+            target: [],
+            achieved: []
+        };
+
         const newUser = await app.store.find<User>('users', this.user!.id() + "", {
             include: 'trustLevel,trustLevel.next',
         });
@@ -71,12 +82,12 @@ export class levelPage extends UserPage {
             conditionMap = {}
         }
         this.valueUtils = new userValueUtil(humanize, conditionMap);
-        const currentLevel = newUser.trustLevel();
-        const nextLevel = currentLevel && currentLevel?.next();
+        const currentLevel = newUser.trustLevel() || undefined;
+        const nextLevel = currentLevel?.next() || undefined;
 
         [currentLevel, nextLevel].forEach(level => {
             if (level) {
-                level.condition().forEach(condition => {
+                (level.condition() || []).forEach(condition => {
                     if (this.fields.findIndex(c =>
                         c.name === condition.name &&
                         c.alter_name === condition.alter_name &&
@@ -103,7 +114,7 @@ export class levelPage extends UserPage {
             data.level = level;
 
             if (level) {
-                level.condition().forEach(condition => {
+                (level.condition() || []).forEach(condition => {
                     const id = this.fields.findIndex(c =>
                         c.name === condition.name &&
                         c.alter_name === condition.alter_name &&
@@ -113,13 +124,15 @@ export class levelPage extends UserPage {
                     data.target[id] = condition.value;
                     data.achieved[id] = this.conditionOp(value, condition.operator, condition.value);
                 });
-                data.title = (app.translator.trans(c[2], {
+                const translated = app.translator.trans(c[2], {
                     name: level.name()
-                }) as string[]).join("");
+                });
+                data.title = Array.isArray(translated) ? translated.join("") : String(translated);
             } else {
-                data.title = (app.translator.trans(c[2], {
+                const translated = app.translator.trans(c[2], {
                     name: app.translator.trans('xypp-trust-levels.forum.page.none')
-                }) as string[]).join("");
+                });
+                data.title = Array.isArray(translated) ? translated.join("") : String(translated);
             }
         });
 

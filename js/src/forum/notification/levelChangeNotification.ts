@@ -7,14 +7,14 @@ import User from 'flarum/common/models/User';
 export default class levelChangeNotification extends Notification {
     excerpt() {
         const currentLevel = (this.attrs.notification.subject() as TrustLevel);
-        const from = this.attrs.notification.attribute<number>("data.from");
-        if (!from) {
+        const from = this.attrs.notification.attribute<string>("data.from");
+        const fromLevel = this.attrs.notification.attribute<number | undefined>("data.from_level");
+        if (fromLevel === undefined) {
             return app.translator.trans('xypp-trust-levels.forum.notification.level-set-excerpt', {
                 name: currentLevel.name(),
                 level: currentLevel.level()
             });
         }
-        const fromLevel = this.attrs.notification.attribute<number>("data.from_level");
         return app.translator.trans('xypp-trust-levels.forum.notification.level-change-excerpt', {
             name: currentLevel.name(),
             level: currentLevel.level(),
@@ -22,13 +22,13 @@ export default class levelChangeNotification extends Notification {
         });
     }
     icon() {
-        const from = this.attrs.notification.attribute<number>("data.from_level");
-        if (!from) {
+        const fromLevel = this.attrs.notification.attribute<number | undefined>("data.from_level");
+        if (fromLevel === undefined) {
             return "fas fa-layer-group";
         }
 
         const currentLevel = (this.attrs.notification.subject() as TrustLevel).level();
-        if (from > currentLevel) {
+        if (fromLevel > currentLevel) {
             return 'fas fa-level-down-alt';
         }
         return 'fas fa-level-up-alt';
@@ -43,15 +43,15 @@ export default class levelChangeNotification extends Notification {
     content() {
 
         const currentLevel = (this.attrs.notification.subject() as TrustLevel);
-        const from = this.attrs.notification.attribute<number>("data.from");
-        if (!from) {
+        const from = this.attrs.notification.attribute<string>("data.from");
+        const fromLevel = this.attrs.notification.attribute<number | undefined>("data.from_level");
+        if (fromLevel === undefined) {
             return app.translator.trans('xypp-trust-levels.forum.notification.level', {
                 name: currentLevel.name(),
                 level: currentLevel.level()
             });
         }
 
-        const fromLevel = this.attrs.notification.attribute<number>("data.from_level");
         if (fromLevel < currentLevel.level()) {
             return app.translator.trans('xypp-trust-levels.forum.notification.level-up', {
                 name: currentLevel.name(),
