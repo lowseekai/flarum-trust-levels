@@ -1,0 +1,70 @@
+xypp-collector:
+  forum:
+    reward_not_found: 未找到奖励{reward}
+    condition_not_found: 未找到条件{condition}
+    condition:
+      condition: "条件"
+      format: "{span} <b>{name}:{calculate}</b>{operator}{value} "
+      and: " 并且 "
+      span: "在{span}天内"
+    reward:
+      reward: "奖励"
+      format: "<b>{name}</b>:{value}"
+      and: " 和 "
+  admin:
+    settings: "设置"
+    max_keep: "最大记录天数"
+    allow_update: "允许用户手动更新"
+    use_custom: "使用自定义条件"
+    custom_global_update: "自定义条件在全局条件更新时更新"
+    custom_normal_update: "自定义条件在普通条件更新时更新"
+    limited_accumulation_support: "这个条件无法再重算时获取全部信息，将在运行命令时询问你"
+    auto_update: "自动更新自定义条件"
+    auto_update_hour: "自动更新进行的时间小时值 (本地时间)"
+    emit_control:
+      title: "触发更新和重算"
+      event: "事件"
+      update: "更新命令"
+      manual: "手动"
+      abs: "重算命令"
+      name: "名字"
+    list:
+      condition: "条件"
+      reward: "奖励"
+      condition-name: "条件名"
+      condition-operator: "操作符"
+      condition-value: "条件值"
+      condition-span: "时间区间"
+      condition-alter_name: "显示名"
+      condition-calculate: "计算"
+      reward-name: "奖励名"
+      reward-value: "奖励值"
+      reward-get_value: "获取值"
+      reward-alter_name: "显示名"
+      new_item: "新项"
+    custom:
+      title: "自定义条件"
+      name: "名字"
+      add: "新建"
+      display_name: "显示名"
+      evaluation: "表达式"
+      button-edit: "编辑"
+      button: "创建"
+      delete-confirm: "确定要删除此项吗？"
+    permissions:
+      view-condition: "查看条件值"
+  api:
+    condition_not_allow_frontend: "该条件不能由前端修改"
+    no_manual_update: "无需手动更新"
+  lib:
+    calculate:
+      sum: "总和"
+      max: "最大值"
+      days: "天数"
+    operator:
+      ge: "大于等于"
+      gt: "大于"
+      le: "小于等于"
+      lt: "小于"
+      eq: "等于"
+      ne: "不等于"

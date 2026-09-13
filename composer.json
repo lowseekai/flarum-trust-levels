@@ -8,7 +8,11 @@
     "license": "GPL-3.0",
     "require": {
         "flarum/core": "^2.0.0-rc.8",
-        "xypp/collector": "dev-collector-flarum-2-compat"
+        "nxp/math-executor": "^2.3",
+        "xypp/flarum-localize-date-lib": "*"
+    },
+    "replace": {
+        "xypp/collector": "*"
     },
     "authors": [
         {
@@ -19,8 +23,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "Xypp\\TrustLevels\\": "src/"
-        }
+            "Xypp\\TrustLevels\\": "src/",
+            "Xypp\\Collector\\": "src/Collector/"
+        },
+        "files": [
+            "src/collector-classMappings.php"
+        ]
     },
     "extra": {
         "flarum-extension": {
@@ -30,7 +38,16 @@
                 "name": "fas fa-layer-group",
                 "color": "#fff",
                 "backgroundColor": "#f44336"
-            }
+            },
+            "optional-dependencies": [
+                "xypp/store",
+                "flarum/likes",
+                "michaelbelgium/flarum-discussion-views",
+                "v17development/flarum-user-badges",
+                "fof/best-answer",
+                "flarum/tags",
+                "askvortsov/flarum-moderator-warnings"
+            ]
         },
         "flarum-cli": {
             "modules": {

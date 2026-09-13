@@ -11,6 +11,21 @@
 
 namespace Xypp\TrustLevels;
 
+use Xypp\Collector\Console\Daily as CollectorDaily;
+use Xypp\Collector\Console\Debug as CollectorDebug;
+use Xypp\Collector\Console\Migrate as CollectorMigrate;
+use Xypp\Collector\Console\RecalculateCondition;
+use Xypp\Collector\Console\UpdateCondition;
+use Xypp\Collector\Api\Controller\AddCustomConditionController;
+use Xypp\Collector\Api\Controller\DeleteCustomConditionController;
+use Xypp\Collector\Api\Controller\EditCustomConditionController;
+use Xypp\Collector\Api\Controller\FrontendConditionUpdateController;
+use Xypp\Collector\Api\Controller\GetCollectorDefinitionController;
+use Xypp\Collector\Api\Controller\ListCustomConditionController;
+use Xypp\Collector\Api\Controller\ListUserConditionsController;
+use Xypp\Collector\Listener\ConditionModifierListener;
+use Xypp\Collector\Listener\GlobalConditionModifierListener;
+use Xypp\Collector\Provider\CollectorServiceProvider;
 use Flarum\Api\Endpoint;
 use Flarum\Api\Resource\NotificationResource;
 use Flarum\Api\Resource\UserResource;
@@ -27,14 +42,22 @@ use Xypp\TrustLevels\Listener\Debug;
 use Xypp\TrustLevels\Notification\TrustLevelChangeNotification;
 use Xypp\TrustLevels\Utils\TrustLevelUtils;
 
-return [
+return array_merge([
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
         ->css(__DIR__ . '/less/forum.less'),
+    (new Extend\Frontend('forum'))
+        ->js(__DIR__ . '/js/dist/collector/forum.js')
+        ->css(__DIR__ . '/less/collector/forum.less'),
     (new Extend\Frontend('admin'))
         ->js(__DIR__ . '/js/dist/admin.js')
         ->css(__DIR__ . '/less/admin.less'),
+    (new Extend\Frontend('admin'))
+        ->js(__DIR__ . '/js/dist/collector/admin.js')
+        ->css(__DIR__ . '/less/collector/admin.less'),
     new Extend\Locales(__DIR__ . '/locale'),
+    new Extend\Locales(__DIR__ . '/locale/collector'),
+    new Extend\Locales(__DIR__ . '/locale/collector-integration'),
     (new Extend\Model(User::class))
         ->hasOne('trustLevel', TrustLevel::class, "level", "trust_level"),
     new Extend\ApiResource(TrustLevelResource::class),
@@ -62,11 +85,40 @@ return [
     (new Extend\Event)
         ->listen(ConditionChange::class, \Xypp\TrustLevels\Listener\ConditionChange::class)
         ->listen(DailyUpdate::class, DayChange::class)
-        ->listen(DebugInfo::class, Debug::class),
+        ->listen(DebugInfo::class, Debug::class)
+        ->listen(\Xypp\Collector\Event\UpdateCondition::class, ConditionModifierListener::class)
+        ->listen(\Xypp\Collector\Event\UpdateGlobalCondition::class, GlobalConditionModifierListener::class),
+    (new Extend\Routes('api'))
+        ->post('/collector-condition', 'collector-condition.trigger', FrontendConditionUpdateController::class)
+        ->get('/collector-condition', 'collector-condition.index', ListUserConditionsController::class)
+        ->get('/collector-data', 'collector-data.index', GetCollectorDefinitionController::class)
+        ->post('/custom-condition', 'custom-condition.add', AddCustomConditionController::class)
+        ->patch('/custom-condition/{id}', 'custom-condition.edit', EditCustomConditionController::class)
+        ->delete('/custom-condition/{id}', 'custom-condition.delete', DeleteCustomConditionController::class)
+        ->get('/custom-condition', 'custom-condition.list', ListCustomConditionController::class),
     (new Extend\Console)
-        ->command(UpdateLevel::class),
+        ->command(UpdateLevel::class)
+        ->command(UpdateCondition::class)
+        ->command(RecalculateCondition::class)
+        ->command(CollectorDebug::class)
+        ->command(CollectorMigrate::class)
+        ->command(CollectorDaily::class)
+        ->schedule(CollectorDaily::class, function ($event) {
+            $event->hourly();
+        }),
+    (new Extend\ServiceProvider())
+        ->register(CollectorServiceProvider::class),
     (new Extend\Notification)
         ->type(TrustLevelChangeNotification::class, ['alert']),
     (new Extend\Settings)
         ->default("xypp-trust-levels.no-auto-update", false)
-];
+        ->default("xypp.collector.max_keep", 30)
+        ->default("xypp.collector.emit_control", "{}")
+        ->default("xypp.collector.auto_update", false)
+        ->default("xypp.collector.auto_update_hour", 0)
+        ->default("xypp.collector.invalid_tags", "{}")
+        ->default("xypp.collector.custom-global-update", false)
+        ->default("xypp.collector.use_custom", false)
+        ->serializeToForum("xypp.collector.max_keep", "xypp.collector.max_keep")
+], require __DIR__ . '/src/Collector/Integration/Integrations.php',
+    require __DIR__ . '/src/Collector/Custom/extend.php');

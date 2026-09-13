@@ -1,0 +1,51 @@
+.collector-name {
+    font-size: x-large;
+
+    .collector-done {
+        color: var(--alert-success-color);
+        font-size: small;
+    }
+}
+
+.collector-description {
+    color: var(--text-color);
+    height: 35px;
+}
+
+.collector-infos {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .collector-condition,
+    .collector-reward {
+        flex-basis: 45%;
+        flex-grow: 0;
+    }
+
+    .collector-condition-title,
+    .collector-reward-title {
+        border-bottom: var(--primary-color) 2px solid;
+    }
+}
+
+.collector-icon {
+    position: absolute;
+    right: 17px;
+    top: 10px;
+    z-index: 2;
+    font-size: 24px;
+}
+
+.collector-progress-satisfy {
+    color: var(--alert-success-color);
+}
+
+.collector-progress-not-satisfy {
+    color: var(--alert-error-bg);
+}
+
+
+.collector-condition-line {
+    white-space: nowrap;
+}
