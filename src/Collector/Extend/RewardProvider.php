@@ -25,7 +25,7 @@ class RewardProvider implements ExtenderInterface
         $this->conditionsDefinitions[] = $className;
         return $this;
     }
-    public function extend(Container $container, Extension $extension = null)
+    public function extend(Container $container, ?Extension $extension = null): void
     {
         $container->resolving(
             RewardDefinitionCollection::class,
@@ -42,6 +42,5 @@ class RewardProvider implements ExtenderInterface
                 }
             }
         );
-        return $this;
     }
 }

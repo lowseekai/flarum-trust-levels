@@ -51,7 +51,7 @@ class ConditionProvider implements ExtenderInterface
         $this->simpleGlobalConditionsDefinitions[] = [$name, $translateKey];
         return $this;
     }
-    public function extend(Container $container, Extension $extension = null)
+    public function extend(Container $container, ?Extension $extension = null): void
     {
         $container->resolving(
             ConditionDefinitionCollection::class,
@@ -79,6 +79,5 @@ class ConditionProvider implements ExtenderInterface
                 }
             }
         );
-        return $this;
     }
 }
