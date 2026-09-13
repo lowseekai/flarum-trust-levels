@@ -1,4 +1,4 @@
-import Extend from 'flarum/common/extenders';
+import Extend from 'flarum/common/extenders/index';
 import TrustLevel from './models/TrustLevel';
 export default [
     new Extend.Store()

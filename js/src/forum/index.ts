@@ -7,7 +7,6 @@ import { extend } from 'flarum/common/extend';
 import LinkButton from 'flarum/common/components/LinkButton';
 import { levelPage } from './components/levelPage';
 import levelChangeNotification from './notification/levelChangeNotification';
-import NotificationGrid from 'flarum/forum/components/NotificationGrid';
 import Group from 'flarum/common/models/Group';
 
 const groupLoadAttempts = new Set<string>();
@@ -88,7 +87,9 @@ app.initializers.add('xypp/flarum-trust-levels', () => {
     }
   });
 
-  extend(NotificationGrid.prototype, 'notificationTypes', function (items) {
+  // Flarum 2 no longer exports NotificationGrid as a frontend module.
+  // String targets keep this extender compatible with both Flarum 1 and 2.
+  extend('flarum/forum/components/NotificationGrid', 'notificationTypes', function (items) {
     items.add('trust_level_change', {
       name: 'trust_level_change',
       icon: 'fas fa-layer-group',
