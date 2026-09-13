@@ -23,7 +23,7 @@ class ApiVisitCheck implements MiddlewareInterface
         $response = $handler->handle($request);
         $actor = RequestUtil::getActor($request);
         if (!$actor->isGuest()) {
-            $route = $request->getAttribute('routeName');
+            $route = (string) $request->getAttribute('routeName', '');
             if (!str_starts_with($route, 'api.')) {
                 $this->events->dispatch(
                     new UpdateCondition(

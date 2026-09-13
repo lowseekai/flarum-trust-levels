@@ -1,6 +1,7 @@
 import ExtensionPage from "flarum/admin/components/ExtensionPage";
 import app from 'flarum/admin/app';
 import Button from "flarum/common/components/Button";
+import Model from 'flarum/common/Model';
 import { showIf } from "../../common/utils/NodeUtil";
 import LoadingIndicator from "flarum/common/components/LoadingIndicator";
 import HumanizeUtils from "../../common/utils/HumanizeUtils";
@@ -8,9 +9,13 @@ import Checkbox from "flarum/common/components/Checkbox";
 import LinkButton from "flarum/common/components/LinkButton";
 import Tooltip from "flarum/common/components/Tooltip";
 import Stream from "mithril/stream";
-import type Tag from "@flarum-tags/common/models/Tag";
 import CustomCondition from "../../common/models/CustomCondition";
 import editCustomModal from "./editCustomModal";
+
+type Tag = Model & {
+    id(): string | false;
+    name(): string;
+};
 
 export default class adminPage extends ExtensionPage {
     loadingData: boolean = false;

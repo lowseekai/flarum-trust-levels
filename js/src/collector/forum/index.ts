@@ -1,11 +1,3 @@
-import app from 'flarum/forum/app';
-import { init } from '../common/integration';
-import { registerCount } from './integration/pageCount';
-app.initializers.add('xypp/collector', () => {
-  init(app, "forum");
-  registerCount();
-});
-
 import { addCondition, addReward, addRewardSelection, rewardValueConvert } from '../common/utils/AddFrontend';
 import { triggerCondition, triggerConditions } from './utils/frontendTrigger';
 import HumanizeUtils from '../common/utils/HumanizeUtils';

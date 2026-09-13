@@ -34,16 +34,23 @@ class DiscussionTagListener
             return;
         if (isset($event->data['relationships']['tags']['data'])) {
             $linkage = (array) $event->data['relationships']['tags']['data'];
+            $newTagIds = [];
+
             foreach ($linkage as $link) {
-                $newTagIds[] = (int) $link['id'];
+                if (isset($link['id'])) {
+                    $newTagIds[] = (int) $link['id'];
+                }
             }
+
             $newTags = Tag::whereIn('id', $newTagIds)->get();
             $oldTags = $event->discussion->tags()->get();
 
             $newValid = $this->helper->isAllTagValid($newTags, "discussion");
             $oldValid = $this->helper->isAllTagValid($oldTags, "discussion");
-            if ($newValid && !$oldValid)
+
+            if ($newValid !== $oldValid) {
                 $this->updateTagCount($event->discussion, $newValid ? 1 : -1);
+            }
         }
     }
 

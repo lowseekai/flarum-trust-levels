@@ -16,12 +16,7 @@
     "declarationDir": "./dist-typings",
     "baseUrl": ".",
     "paths": {
-      "flarum/*": ["../vendor/flarum/core/js/dist-typings/*"],
-// <CUSTOM-2>
-"@xypp-collector/*": [
-  "../vendor/xypp/collector/js/dist-typings/*"
-]
-// </CUSTOM-2>
+      "flarum/*": ["../vendor/flarum/core/js/dist-typings/*"]
     }
   }
 }

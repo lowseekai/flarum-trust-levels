@@ -1,12 +1,7 @@
 <?php
 
-use AntoineFr\Money\Event\MoneyUpdated;
-use Flarum\Discussion\Event\Started;
 use Flarum\Extend;
-use Flarum\Post\Event\Posted;
-use Flarum\Tags\Event\DiscussionWasTagged;
-use Michaelbelgium\Discussionviews\Events\DiscussionWasViewed;
-use Xypp\Collector\Integration\ControllerCheck\ModeratorWarnings;
+use Flarum\Extension\ExtensionManager;
 use Xypp\Collector\Integration\Listener\BestAnswerListener;
 use Xypp\Collector\Integration\Listener\DiscussionCountListener;
 use Xypp\Collector\Integration\Listener\DiscussionTagListener;
@@ -17,31 +12,43 @@ use Xypp\Collector\Integration\Listener\PostCountListener;
 use Xypp\Collector\Integration\Listener\StoreEventListener;
 use Xypp\Collector\Integration\Listener\UserEventsListener;
 use Xypp\Collector\Integration\Middleware\ApiVisitCheck;
-use Xypp\Store\Event\PurchaseDone;
+/** @var ExtensionManager $extensionManager */
+$extensionManager = resolve(ExtensionManager::class);
 
-$ret = [
-    (new Extend\Event)
-        ->subscribe(PostCountListener::class)
-        ->subscribe(DiscussionCountListener::class)
-        ->subscribe(UserEventsListener::class)
-        //Integrate with AntoineFr/money
-        ->listen(MoneyUpdated::class, MoneyChangeListener::class)
-        //Integrate with michaelbelgium/flarum-discussion-views
-        ->listen(DiscussionWasViewed::class, DiscussionViewed::class)
-        //Integrate with xypp/store
-        ->listen(PurchaseDone::class, StoreEventListener::class)
-        //Integrate with flarum/likes
-        ->subscribe(LikeEventsListener::class)
-        //Integrate with fof/best-answer
-        ->subscribe(BestAnswerListener::class)
-        //Integrate with flarum/tags
-        ->subscribe(DiscussionTagListener::class)
-    ,
+$events = (new Extend\Event)
+    ->subscribe(PostCountListener::class)
+    ->subscribe(DiscussionCountListener::class)
+    ->subscribe(UserEventsListener::class);
+
+if ($extensionManager->isEnabled('antoinefr-money') && class_exists(\AntoineFr\Money\Event\MoneyUpdated::class)) {
+    $events->listen(\AntoineFr\Money\Event\MoneyUpdated::class, MoneyChangeListener::class);
+}
+
+if ($extensionManager->isEnabled('michaelbelgium-discussion-views') && class_exists(\Michaelbelgium\Discussionviews\Events\DiscussionWasViewed::class)) {
+    $events->listen(\Michaelbelgium\Discussionviews\Events\DiscussionWasViewed::class, DiscussionViewed::class);
+}
+
+if ($extensionManager->isEnabled('xypp-store') && class_exists(\Xypp\Store\Event\PurchaseDone::class)) {
+    $events->listen(\Xypp\Store\Event\PurchaseDone::class, StoreEventListener::class);
+}
+
+if ($extensionManager->isEnabled('flarum-likes') && class_exists(\Flarum\Likes\Event\PostWasLiked::class)) {
+    $events->subscribe(LikeEventsListener::class);
+}
+
+if ($extensionManager->isEnabled('fof-best-answer') && class_exists(\FoF\BestAnswer\Events\BestAnswerSet::class)) {
+    $events->subscribe(BestAnswerListener::class);
+}
+
+if ($extensionManager->isEnabled('flarum-tags') && class_exists(\Flarum\Tags\Tag::class)) {
+    $events->subscribe(DiscussionTagListener::class);
+}
+
+return [
+    $events,
     (new Extend\Middleware("forum"))
         ->add(ApiVisitCheck::class),
 
     (new Extend\Settings)
         ->default("xypp.collector.invalid_tags", "{}")
 ];
-
-return $ret;

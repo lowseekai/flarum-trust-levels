@@ -10,18 +10,24 @@ export async function getConditionMap(forceRefresh: boolean = false, user: numbe
     return conditionMap;
 }
 export async function getConditions(forceRefresh: boolean = false, user: number | string | User | null = null): Promise<Condition[]> {
-    let data = undefined;
+    let data: { id: number | string } | undefined;
     if (user) {
-        if (user instanceof User) data = { id: user.id() };
+        if (user instanceof User) {
+            const userId = user.id();
+            if (userId) {
+                data = { id: userId };
+            }
+        }
         else data = { id: user };
     }
-    let conditions = app.store.all<Condition>("collector-condition");
-    if (data && data.id) {
-        conditions = conditions.filter(c => c.global() || c.user_id() == data.id);
+    let conditions = app.store.all<Condition>("condition");
+    const query = data;
+    if (query) {
+        conditions = conditions.filter(c => c.global() || c.user_id() == query.id);
     }
 
     if (forceRefresh || conditions.length == 0) {
-        conditions = await app.store.find<Condition[]>('collector-condition', data as any);
+        conditions = await app.store.find<Condition[]>('collector-condition', query as any);
     }
     return conditions;
 }

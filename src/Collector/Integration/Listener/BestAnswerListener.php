@@ -66,6 +66,11 @@ class BestAnswerListener
 
         if ($discussion->best_answer_post_id) {
             $post = Post::find($discussion->best_answer_post_id);
+
+            if (! $post || ! $post->user) {
+                return;
+            }
+
             $author = $post->user;
 
             $this->events->dispatch(

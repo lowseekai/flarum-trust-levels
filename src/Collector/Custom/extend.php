@@ -2,8 +2,6 @@
 
 use Flarum\Extend;
 use Xypp\Collector\Custom\Listener\ChangeListener;
-use Xypp\Collector\Custom\Listener\DateChangeListener;
-use Xypp\LocalizeDate\Event\DateChangeEvent;
 
 return [
     (new Extend\Event)
