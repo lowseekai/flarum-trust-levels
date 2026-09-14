@@ -42,6 +42,13 @@ xypp-trust-levels:
       required: "Required"
       your: "Your"
       no-condition: "No Condition Required"
+      progress: "Conditions completed"
+      current-progress: "Current level status"
+      progress-help: "Complete all conditions to reach the next trust level."
+      no-next-level-help: "You have reached the highest configured trust level."
+      no-next-level: "No higher trust level is configured"
+      achieved: "Complete"
+      in-progress: "In progress"
     nav-title: "Trust Levels"
     notification:
       level: "You have entered a new level!"

@@ -42,6 +42,13 @@ xypp-trust-levels:
       required: "需要"
       your: "你的"
       no-condition: "没有需要达成的条件"
+      progress: "已完成条件"
+      current-progress: "当前等级状态"
+      progress-help: "完成全部条件后即可达到下一个信任等级。"
+      no-next-level-help: "你已经达到当前配置的最高信任等级。"
+      no-next-level: "尚未配置更高的信任等级"
+      achieved: "已完成"
+      in-progress: "进行中"
     nav-title: "信任等级"
     notification:
       level: "你已经达到了一个新等级!"
