@@ -162,6 +162,7 @@ export default class ConditionConfigure extends Component<{ conditions: Stream<C
                         item.name != '*',
                         <Button
                           className="Button Button--danger Button--icon"
+                          icon="fas fa-trash"
                           aria-label={app.translator.trans('xypp-collector.admin.list.condition-delete')}
                           onclick={((e: any) => {
                             this.conditions.splice(index, 1);
@@ -169,29 +170,25 @@ export default class ConditionConfigure extends Component<{ conditions: Stream<C
                             this.attrs.conditions(this.conditions.filter(noNewItem));
                           }).bind(this)}
                           data-id={index}
-                        >
-                          <i class="fas fa-trash"></i>
-                        </Button>
+                        />
                       )}
                       {showIf(
                         this.conditions[index - 1] && item.name != '*',
                         <Button
                           className="Button Button--secondary Button--icon"
+                          icon="fas fa-sort-up"
                           aria-label={app.translator.trans('xypp-collector.admin.list.condition-move-up')}
                           onclick={this.swap(index, -1)}
-                        >
-                          <i class="fas fa-sort-up"></i>
-                        </Button>
+                        />
                       )}
                       {showIf(
                         this.conditions[index + 2] && item.name != '*',
                         <Button
                           className="Button Button--secondary Button--icon"
+                          icon="fas fa-sort-down"
                           aria-label={app.translator.trans('xypp-collector.admin.list.condition-move-down')}
                           onclick={this.swap(index, 1)}
-                        >
-                          <i class="fas fa-sort-down"></i>
-                        </Button>
+                        />
                       )}
                     </div>
                   </td>

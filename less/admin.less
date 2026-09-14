@@ -129,16 +129,19 @@
 .xypp-trust-levels-create-copy-controls {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     margin-bottom: 12px;
+    max-width: 100%;
+    overflow-x: auto;
 
     .Select {
-        flex: 1 1 220px;
-        min-width: 180px;
+        flex: 1 1 auto;
+        min-width: 140px;
     }
 
     .Button {
         flex: 0 0 auto;
+        white-space: nowrap;
     }
 }
