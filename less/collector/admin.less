@@ -22,8 +22,72 @@
 }
 
 
-.condition-table{
-    display: block;
+.condition-table-wrapper {
     width: 100%;
     overflow-x: auto;
+}
+
+.condition-table {
+    width: 100%;
+    min-width: 900px;
+    table-layout: fixed;
+
+    col {
+        box-sizing: border-box;
+    }
+
+    th,
+    td {
+        box-sizing: border-box;
+        padding: 12px 10px;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .condition-table-col-name {
+        width: 22%;
+    }
+
+    .condition-table-col-operator {
+        width: 11%;
+    }
+
+    .condition-table-col-value {
+        width: 12%;
+    }
+
+    .condition-table-col-span {
+        width: 11%;
+    }
+
+    .condition-table-col-calculate {
+        width: 14%;
+    }
+
+    .condition-table-col-alter-name {
+        width: 20%;
+    }
+
+    .condition-table-col-actions {
+        width: 18%;
+    }
+
+    .FormControl {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    td:last-child {
+        white-space: nowrap;
+    }
+
+    .condition-table-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+    }
 }

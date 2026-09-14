@@ -6,116 +6,146 @@ use Flarum\Discussion\Discussion;
 use Flarum\Discussion\Event\Deleted;
 use Flarum\Discussion\Event\Hidden;
 use Flarum\Discussion\Event\Restored;
-use \Flarum\Discussion\Event\Started;
+use Flarum\Discussion\Event\Started;
 use Flarum\User\User;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Events\Dispatcher;
 use Xypp\Collector\Data\ConditionData;
 use Xypp\Collector\Event\UpdateCondition;
 use Xypp\Collector\Event\UpdateGlobalCondition;
-use Xypp\Collector\Integration\Helper\ValidTagsHelper;
+use Xypp\Collector\Helper\ConditionHelper;
 
 class DiscussionCountListener
 {
-    protected $events;
-    private $helper;
-    public function __construct(Dispatcher $events, ValidTagsHelper $helper)
+    protected Dispatcher $events;
+
+    public function __construct(
+        Dispatcher $events,
+        protected ConditionHelper $conditionHelper,
+        protected ConnectionInterface $connection
+    )
     {
         $this->events = $events;
-        $this->helper = $helper;
     }
-    public function subscribe($events)
+
+    public function subscribe($events): void
     {
         $events->listen(Started::class, [$this, 'startOrRestore']);
         $events->listen(Restored::class, [$this, 'startOrRestore']);
         $events->listen(Hidden::class, [$this, 'hidden']);
+        $events->listen(Deleted::class, [$this, 'deleted']);
     }
-    public function startOrRestore(Started|Restored $event)
+
+    public function startOrRestore(Started|Restored $event): void
     {
-        $this->discussionCondition($event->discussion->user, $event->discussion, 1);
+        $discussion = $event->discussion;
+        $this->discussionCondition($discussion->user, $discussion, 1);
+
         if ($event instanceof Restored) {
-            $this->discussionPostCondition($event->discussion->user, $event->discussion, 1);
+            $this->discussionPostCondition($discussion, 1);
+            $this->refreshDiscussionViewConditions($discussion);
         }
     }
 
-    public function hidden(Hidden $event)
+    public function hidden(Hidden $event): void
     {
-        $this->discussionCondition($event->discussion->user, $event->discussion, -1);
-        $this->discussionPostCondition($event->discussion->user, $event->discussion, -1);
-    }
-    public function deleted(Deleted $event)
-    {
-        if ($event->discussion->hidden_at)
-            return;
-        $this->discussionCondition($event->discussion->user, $event->discussion, -1);
-        $this->discussionPostCondition($event->discussion->user, $event->discussion, -1);
+        $discussion = $event->discussion;
+        $this->discussionCondition($discussion->user, $discussion, -1);
+        $this->discussionPostCondition($discussion, -1);
+        $this->refreshDiscussionViewConditions($discussion);
     }
 
-    public function discussionCondition(?User $user, Discussion $discussion, int $amount)
+    public function deleted(Deleted $event): void
     {
-        $this->events->dispatch(
-            new UpdateCondition(
+        if ($event->discussion->hidden_at) {
+            return;
+        }
+
+        $discussion = $event->discussion;
+        $this->discussionCondition($discussion->user, $discussion, -1);
+        $this->discussionPostCondition($discussion, -1);
+        $this->refreshDiscussionViewConditions($discussion);
+    }
+
+    protected function discussionCondition(?User $user, Discussion $discussion, int $amount): void
+    {
+        if ($user) {
+            $this->events->dispatch(new UpdateCondition(
                 $user,
                 [new ConditionData('discussion_count', $amount)]
-            )
-        );
-        $this->events->dispatch(
-            new UpdateGlobalCondition(
-                [new ConditionData('global.discussion_count', $amount)]
-            )
-        );
-        if (class_exists(\Flarum\Tags\Tag::class)) {
-            if ($this->helper->isAllTagValid($discussion->tags, "discussion")) {
-                $this->events->dispatch(
-                    new UpdateCondition(
-                        $user,
-                        [new ConditionData('valid_discussion_count', $amount)]
-                    )
-                );
-                $this->events->dispatch(
-                    new UpdateGlobalCondition(
-                        [new ConditionData('global.valid_discussion_count', $amount)]
-                    )
-                );
-            }
-        }
-    }
-    public function discussionPostCondition(?User $user, Discussion $discussion, int $amount)
-    {
-        $updateValid = false;
-        if (class_exists(\Flarum\Tags\Tag::class)) {
-            if ($this->helper->isAllTagValid($discussion->tags, "discussion"))
-                $updateValid = true;
+            ));
+
+            $this->events->dispatch(new UpdateCondition(
+                $user,
+                [new ConditionData('active_days', $amount)]
+            ));
         }
 
-        $discussion->posts->each(function ($post) use ($updateValid, $user, $amount) {
-            if ($post->type != 'comment')
+        $this->events->dispatch(new UpdateGlobalCondition(
+            [new ConditionData('global.discussion_count', $amount)]
+        ));
+    }
+
+    protected function discussionPostCondition(Discussion $discussion, int $amount): void
+    {
+        $repliedUserIds = [];
+
+        $discussion->posts->each(function ($post) use ($amount): void {
+            if ($post->type !== 'comment' || $post->hidden_at || !$post->user) {
                 return;
-            if ($post->hidden_at)
-                return;
-            $this->events->dispatch(
-                new UpdateCondition(
-                    $post->user,
-                    [new ConditionData('post_count', $amount)]
-                )
-            );
-            $this->events->dispatch(
-                new UpdateGlobalCondition(
-                    [new ConditionData('global.post_count', $amount)]
-                )
-            );
-            if ($updateValid) {
-                $this->events->dispatch(
-                    new UpdateCondition(
-                        $post->user,
-                        [new ConditionData('valid_post_count', $amount)]
-                    )
-                );
-                $this->events->dispatch(
-                    new UpdateGlobalCondition(
-                        [new ConditionData('global.valid_post_count', $amount)]
-                    )
-                );
+            }
+
+            $this->events->dispatch(new UpdateCondition(
+                $post->user,
+                [new ConditionData('post_count', $amount)]
+            ));
+
+            $this->events->dispatch(new UpdateCondition(
+                $post->user,
+                [new ConditionData('active_days', $amount)]
+            ));
+
+            $this->events->dispatch(new UpdateGlobalCondition(
+                [new ConditionData('global.post_count', $amount)]
+            ));
+        });
+
+        $discussion->posts->each(function ($post) use (&$repliedUserIds): void {
+            if (
+                $post->type === 'comment'
+                && !$post->hidden_at
+                && $post->user
+                && (int) $post->number > 1
+                && (int) $post->id !== (int) $discussion->first_post_id
+            ) {
+                $repliedUserIds[$post->user->id] = $post->user;
             }
         });
+
+        foreach ($repliedUserIds as $user) {
+            $this->events->dispatch(new UpdateCondition(
+                $user,
+                [new ConditionData('replied_discussions', $amount)]
+            ));
+        }
+    }
+
+    protected function refreshDiscussionViewConditions(Discussion $discussion): void
+    {
+        $userIds = $this->connection->table('trust_level_discussion_views')
+            ->where('discussion_id', $discussion->id)
+            ->distinct()
+            ->pluck('user_id');
+
+        if ($userIds->isEmpty()) {
+            return;
+        }
+
+        User::query()
+            ->whereIn('id', $userIds)
+            ->get()
+            ->each(function (User $user): void {
+                $this->conditionHelper->updateUserCondition($user, 'discussion_views');
+            });
     }
 }

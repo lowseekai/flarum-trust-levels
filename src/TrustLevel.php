@@ -15,12 +15,24 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $level
  * @property array $conditions
  * @property int|null $group_id
+ * @property bool $allow_downgrade
+ * @property int $downgrade_grace_days
+ * @property bool $manual_only
  */
 class TrustLevel extends AbstractModel
 {
     protected $table = 'trust_levels';
 
-    protected $fillable = ['name', 'icon', "conditions", "group_id", "level"];
+    protected $fillable = [
+        'name',
+        'icon',
+        'conditions',
+        'group_id',
+        'level',
+        'allow_downgrade',
+        'downgrade_grace_days',
+        'manual_only',
+    ];
 
     /**
      * The group attached to users before this level was saved.
@@ -34,6 +46,9 @@ class TrustLevel extends AbstractModel
         'conditions' => 'array',
         'group_id' => 'integer',
         'level' => 'integer',
+        'allow_downgrade' => 'boolean',
+        'downgrade_grace_days' => 'integer',
+        'manual_only' => 'boolean',
     ];
 
     public function users(): HasMany

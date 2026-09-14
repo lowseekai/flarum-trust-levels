@@ -89,7 +89,7 @@ export default class adminPage extends ExtensionPage {
                     setting: "xypp.collector.max_keep",
                     label: app.translator.trans('xypp-collector.admin.max_keep'),
                     type: "number",
-                    min: 1
+                    min: 100
                 })
             }
             {

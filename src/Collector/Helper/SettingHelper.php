@@ -30,7 +30,9 @@ class SettingHelper
     }
     public function maxKeep()
     {
-        return $this->settings->get("xypp.collector.max_keep") ?? 30;
+        // Trust-level rules can use 60/100-day rolling windows. Keep enough
+        // daily data for those checks even if an older setting was 30 days.
+        return max(100, (int) ($this->settings->get("xypp.collector.max_keep") ?? 100));
     }
     public function globalChangeCustom()
     {

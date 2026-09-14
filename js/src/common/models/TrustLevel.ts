@@ -8,5 +8,8 @@ export default class TrustLevel extends Model {
   icon = Model.attribute<string | null>('icon');
   level = Model.attribute<number>('level');
   group_id = Model.attribute<number | null>('group_id');
+  allow_downgrade = Model.attribute<boolean>('allow_downgrade');
+  downgrade_grace_days = Model.attribute<number>('downgrade_grace_days');
+  manual_only = Model.attribute<boolean>('manual_only');
   next = Model.hasOne<TrustLevel>('next');
 }

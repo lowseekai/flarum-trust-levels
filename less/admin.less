@@ -11,7 +11,7 @@
         box-sizing: border-box;
         padding: 10px 15px;
         vertical-align: middle;
-        text-align: left;
+        text-align: center;
     }
 
     .xypp-trust-levels-adminPage-table-col-id,
@@ -49,6 +49,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        text-align: center;
     }
 
     .xypp-trust-levels-adminPage-table-operation {
@@ -84,5 +85,19 @@
 @media (max-width: 767px) {
     .xypp-trust-levels-adminPage-table {
         min-width: 720px;
+    }
+}
+
+.xypp-trust-levels-policy-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .helpText {
+        margin-top: 0;
+    }
+
+    .FormControl[type='number'] {
+        max-width: 180px;
     }
 }

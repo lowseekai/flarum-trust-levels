@@ -129,6 +129,36 @@ class TrustLevelResource extends AbstractDatabaseResource
                 ->set(function (TrustLevel $trustLevel, ?int $value) {
                     $trustLevel->group_id = $value;
                 }),
+            Schema\Boolean::make('allow_downgrade')
+                ->writable()
+                ->get(fn (TrustLevel $trustLevel) => (bool) $trustLevel->allow_downgrade)
+                ->set(function (TrustLevel $trustLevel, bool $value) {
+                    $trustLevel->allow_downgrade = $value;
+                }),
+            Schema\Integer::make('downgrade_grace_days')
+                ->writable()
+                ->get(fn (TrustLevel $trustLevel) => max(0, (int) $trustLevel->downgrade_grace_days))
+                ->deserialize(function ($value) {
+                    if (is_int($value) || (is_string($value) && preg_match('/^\d+$/D', $value))) {
+                        return (int) $value;
+                    }
+
+                    return $value;
+                })
+                ->validate(function ($value, callable $fail) {
+                    if (! is_int($value) || $value < 0 || $value > 3650) {
+                        $fail('The downgrade grace period must be between 0 and 3650 days.');
+                    }
+                })
+                ->set(function (TrustLevel $trustLevel, int $value) {
+                    $trustLevel->downgrade_grace_days = $value;
+                }),
+            Schema\Boolean::make('manual_only')
+                ->writable()
+                ->get(fn (TrustLevel $trustLevel) => (bool) $trustLevel->manual_only)
+                ->set(function (TrustLevel $trustLevel, bool $value) {
+                    $trustLevel->manual_only = $value;
+                }),
             Schema\Integer::make('level')
                 ->get(fn (TrustLevel $trustLevel) => (int) $trustLevel->level),
             Schema\Relationship\ToOne::make('next')
@@ -150,6 +180,12 @@ class TrustLevelResource extends AbstractDatabaseResource
         $trustLevel = parent::newModel($context);
         $trustLevel->icon = '';
         $trustLevel->conditions = [];
+
+        $maxLevel = TrustLevel::query()->max('level');
+        $nextLevel = $maxLevel === null ? 0 : ((int) $maxLevel + 1);
+        $trustLevel->allow_downgrade = $nextLevel === 3;
+        $trustLevel->downgrade_grace_days = $nextLevel === 3 ? 14 : 0;
+        $trustLevel->manual_only = $nextLevel >= 4;
 
         return $trustLevel;
     }
@@ -173,6 +209,7 @@ class TrustLevelResource extends AbstractDatabaseResource
         $model->icon = trim((string) ($model->icon ?? ''));
         $model->conditions = is_array($model->conditions) ? array_values($model->conditions) : [];
         $model->group_id = TrustLevelUtils::normalizeGroupId($model->group_id);
+        $this->applyPolicyConstraints($model);
 
         return $model;
     }
@@ -211,7 +248,13 @@ class TrustLevelResource extends AbstractDatabaseResource
 
             TrustLevel::query()
                 ->where('level', '>', $level)
-                ->update(['level' => TrustLevel::raw('level - 1')]);
+                ->orderBy('level')
+                ->get()
+                ->each(function (TrustLevel $trustLevel) {
+                    $trustLevel->level = (int) $trustLevel->level - 1;
+                    $this->applyPolicyConstraints($trustLevel);
+                    $trustLevel->save();
+                });
         });
     }
 
@@ -274,8 +317,10 @@ class TrustLevelResource extends AbstractDatabaseResource
 
                 if ((int) $trustLevel->level !== $newLevel) {
                     $trustLevel->level = $newLevel;
-                    $trustLevel->save();
                 }
+
+                $this->applyPolicyConstraints($trustLevel);
+                $trustLevel->save();
             }
 
             // Users store the numeric level, so swapping level records also
@@ -288,5 +333,31 @@ class TrustLevelResource extends AbstractDatabaseResource
                 );
             }
         });
+    }
+
+    protected function applyPolicyConstraints(TrustLevel $trustLevel): void
+    {
+        $level = (int) $trustLevel->level;
+
+        if ($level < 3) {
+            $trustLevel->allow_downgrade = false;
+            $trustLevel->downgrade_grace_days = 0;
+            $trustLevel->manual_only = false;
+
+            return;
+        }
+
+        $trustLevel->downgrade_grace_days = max(0, min(3650, (int) $trustLevel->downgrade_grace_days));
+
+        if ($level >= 4) {
+            $trustLevel->allow_downgrade = false;
+            $trustLevel->downgrade_grace_days = 0;
+            $trustLevel->manual_only = true;
+
+            return;
+        }
+
+        $trustLevel->manual_only = (bool) $trustLevel->manual_only;
+        $trustLevel->allow_downgrade = ! $trustLevel->manual_only && (bool) $trustLevel->allow_downgrade;
     }
 }

@@ -4,7 +4,7 @@ namespace Xypp\Collector\Integration\Listener;
 
 use Flarum\Post\Event\Deleted;
 use Flarum\Post\Event\Hidden;
-use \Flarum\Post\Event\Posted;
+use Flarum\Post\Event\Posted;
 use Flarum\Post\Event\Restored;
 use Flarum\Post\Post;
 use Flarum\User\User;
@@ -12,77 +12,109 @@ use Illuminate\Events\Dispatcher;
 use Xypp\Collector\Data\ConditionData;
 use Xypp\Collector\Event\UpdateCondition;
 use Xypp\Collector\Event\UpdateGlobalCondition;
-use Xypp\Collector\Integration\Helper\ValidTagsHelper;
 
 class PostCountListener
 {
-    protected $events;
-    private $helper;
-    public function __construct(Dispatcher $events, ValidTagsHelper $helper)
+    protected Dispatcher $events;
+
+    public function __construct(Dispatcher $events)
     {
         $this->events = $events;
-        $this->helper = $helper;
     }
-    public function subscribe($events)
+
+    public function subscribe($events): void
     {
         $events->listen(Posted::class, [$this, 'postedOrRestore']);
-        $events->listen(Hidden::class, [$this, 'hidden']);
         $events->listen(Restored::class, [$this, 'postedOrRestore']);
-    }
-    public function postedOrRestore(Posted|Restored $event)
-    {
-        if ($event->post->type != 'comment')
-            return;
-        if ($event->post->discussion->hidden_at)
-            return;
-        $this->postCondition($event->post->user, $event->post, 1);
-    }
-    public function hidden(Hidden $event)
-    {
-        if ($event->post->type != 'comment')
-            return;
-        if ($event->post->discussion->hidden_at)
-            return;
-        $this->postCondition($event->post->user, $event->post, -1);
-    }
-    public function delete(Deleted $event)
-    {
-        if ($event->post->type != 'comment')
-            return;
-        if ($event->post->discussion->hidden_at)
-            return;
-        if (!$event->post->hidden_at)
-            $this->postCondition($event->post->user, $event->post, -1);
+        $events->listen(Hidden::class, [$this, 'hidden']);
+        $events->listen(Deleted::class, [$this, 'deleted']);
     }
 
-    protected function postCondition(?User $user, Post $post, int $amount)
+    public function postedOrRestore(Posted|Restored $event): void
     {
-        $this->events->dispatch(
-            new UpdateCondition(
-                $user,
-                [new ConditionData('post_count', $amount)]
-            )
-        );
-        $this->events->dispatch(
-            new UpdateGlobalCondition(
-                [new ConditionData('global.post_count', $amount)]
-            )
-        );
+        $post = $event->post;
 
-        if (class_exists(\Flarum\Tags\Tag::class)) {
-            if ($this->helper->isAllTagValid($post->discussion->tags, "post")) {
-                $this->events->dispatch(
-                    new UpdateCondition(
-                        $user,
-                        [new ConditionData('valid_post_count', $amount)]
-                    )
-                );
-                $this->events->dispatch(
-                    new UpdateGlobalCondition(
-                        [new ConditionData('global.valid_post_count', $amount)]
-                    )
-                );
-            }
+        if ($post->type !== 'comment' || $post->discussion->hidden_at) {
+            return;
         }
+
+        $this->postCondition($post->user, $post, 1);
+    }
+
+    public function hidden(Hidden $event): void
+    {
+        $post = $event->post;
+
+        if ($post->type !== 'comment' || $post->discussion->hidden_at) {
+            return;
+        }
+
+        $this->postCondition($post->user, $post, -1);
+    }
+
+    public function deleted(Deleted $event): void
+    {
+        $post = $event->post;
+
+        if (
+            $post->type !== 'comment'
+            || $post->discussion->hidden_at
+            || $post->hidden_at
+        ) {
+            return;
+        }
+
+        $this->postCondition($post->user, $post, -1);
+    }
+
+    protected function postCondition(?User $user, Post $post, int $amount): void
+    {
+        if (!$user) {
+            return;
+        }
+
+        $updates = [new ConditionData('post_count', $amount)];
+
+        if ($this->shouldUpdateRepliedDiscussions($user, $post, $amount)) {
+            $updates[] = new ConditionData('replied_discussions', $amount);
+        }
+
+        $this->events->dispatch(new UpdateCondition(
+            $user,
+            $updates
+        ));
+        $this->events->dispatch(new UpdateCondition(
+            $user,
+            [new ConditionData('active_days', $amount)]
+        ));
+        $this->events->dispatch(new UpdateGlobalCondition(
+            [new ConditionData('global.post_count', $amount)]
+        ));
+    }
+
+    protected function shouldUpdateRepliedDiscussions(User $user, Post $post, int $amount): bool
+    {
+        if (
+            !$post->discussion->first_post_id
+            || (is_numeric($post->number) && (int) $post->number <= 1)
+            || ($post->id && (int) $post->id === (int) $post->discussion->first_post_id)
+        ) {
+            return false;
+        }
+
+        $visibleReplyCount = Post::query()
+            ->where('discussion_id', $post->discussion_id)
+            ->where('user_id', $user->id)
+            ->where('type', 'comment')
+            ->where('is_private', false)
+            ->whereNull('hidden_at')
+            ->where('id', '!=', $post->discussion->first_post_id)
+            ->where('id', '!=', $post->id)
+            ->count();
+
+        // Posted/restored events can run before the row is visible in its new
+        // state, while hidden/deleted events can run before or after removal.
+        // Counting other replies makes the transition deterministic.
+        return $visibleReplyCount === 0;
     }
 }

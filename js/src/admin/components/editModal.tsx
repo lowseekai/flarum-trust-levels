@@ -2,6 +2,7 @@ import Modal, { IInternalModalAttrs } from 'flarum/common/components/Modal';
 import app from 'flarum/admin/app';
 import Button from 'flarum/common/components/Button';
 import Select from 'flarum/common/components/Select';
+import Switch from 'flarum/common/components/Switch';
 import TrustLevel from '../../common/models/TrustLevel';
 import { showIf } from '../../common/utils/NodeUtil';
 import Stream from 'flarum/common/utils/Stream';
@@ -19,6 +20,9 @@ export default class editModal extends Modal<{
     icon: string = '';
     level: number = 0;
     group_id: number | null = -1;
+    allow_downgrade: boolean = false;
+    downgrade_grace_days: number = 0;
+    manual_only: boolean = false;
 
     groups: Record<string, string> = {
         '-1': String(app.translator.trans('xypp-trust-levels.admin.create-modal.null_group')),
@@ -30,12 +34,22 @@ export default class editModal extends Modal<{
     oninit(vnode: any): void {
         super.oninit(vnode);
 
+        const nextLevel = app.store.all<TrustLevel>('trust-levels')
+            .reduce((max, trustLevel) => Math.max(max, trustLevel.level()), -1) + 1;
+        this.level = nextLevel;
+        this.allow_downgrade = nextLevel === 3;
+        this.downgrade_grace_days = nextLevel === 3 ? 14 : 0;
+        this.manual_only = nextLevel >= 4;
+
         if (this.attrs.item) {
             this.conditions = new Stream(this.attrs.item.condition() || []);
             this.name = this.attrs.item.name();
             this.level = this.attrs.item.level();
             this.icon = this.attrs.item.icon() || '';
             this.group_id = this.attrs.item.group_id() ?? -1;
+            this.allow_downgrade = this.attrs.item.allow_downgrade() ?? false;
+            this.downgrade_grace_days = this.attrs.item.downgrade_grace_days() ?? 0;
+            this.manual_only = this.attrs.item.manual_only() ?? this.level >= 4;
         }
 
         app.store.all<Group>('groups').forEach((group) => {
@@ -127,6 +141,61 @@ export default class editModal extends Modal<{
                         <ConditionConfigure conditions={this.conditions} />
                     </div>
 
+                    <div className="Form-group xypp-trust-levels-policy-group">
+                        <Switch
+                            state={this.allow_downgrade}
+                            disabled={this.level !== 3 || this.manual_only}
+                            onchange={((value: boolean) => {
+                                this.allow_downgrade = value;
+                            }).bind(this)}
+                        >
+                            {app.translator.trans('xypp-trust-levels.admin.create-modal.allow-downgrade')}
+                        </Switch>
+                        <div className="helpText">
+                            {app.translator.trans('xypp-trust-levels.admin.create-modal.allow-downgrade-help')}
+                        </div>
+                    </div>
+
+                    <div className="Form-group xypp-trust-levels-policy-group">
+                        <label for="xypp-trust-levels-create-ipt-grace-days">
+                            {app.translator.trans('xypp-trust-levels.admin.create-modal.downgrade-grace-days')}
+                        </label>
+                        <input
+                            id="xypp-trust-levels-create-ipt-grace-days"
+                            className="FormControl"
+                            type="number"
+                            min="0"
+                            max="3650"
+                            value={this.downgrade_grace_days}
+                            disabled={this.level !== 3 || !this.allow_downgrade || this.manual_only}
+                            onchange={((e: InputEvent) => {
+                                const value = parseInt((e.target as HTMLInputElement).value, 10);
+                                this.downgrade_grace_days = Number.isNaN(value) ? 0 : Math.max(0, Math.min(3650, value));
+                            }).bind(this)}
+                        />
+                        <div className="helpText">
+                            {app.translator.trans('xypp-trust-levels.admin.create-modal.downgrade-grace-days-help')}
+                        </div>
+                    </div>
+
+                    <div className="Form-group xypp-trust-levels-policy-group">
+                        <Switch
+                            state={this.manual_only}
+                            disabled={this.level !== 3}
+                            onchange={((value: boolean) => {
+                                this.manual_only = value;
+                                if (value) {
+                                    this.allow_downgrade = false;
+                                }
+                            }).bind(this)}
+                        >
+                            {app.translator.trans('xypp-trust-levels.admin.create-modal.manual-only')}
+                        </Switch>
+                        <div className="helpText">
+                            {app.translator.trans('xypp-trust-levels.admin.create-modal.manual-only-help')}
+                        </div>
+                    </div>
+
                     <div className="Form-group">
                         <label for="xypp-trust-levels-create-ipt-re_available">
                             {app.translator.trans('xypp-trust-levels.admin.create-modal.group')}
@@ -169,6 +238,9 @@ export default class editModal extends Modal<{
                 name: this.name,
                 icon: this.icon,
                 group_id: this.group_id,
+                allow_downgrade: this.level === 3 && this.allow_downgrade && !this.manual_only,
+                downgrade_grace_days: this.downgrade_grace_days,
+                manual_only: this.level >= 4 || (this.level === 3 && this.manual_only),
             });
 
             this.attrs.update && this.attrs.update(newItem);

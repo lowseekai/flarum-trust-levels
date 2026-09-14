@@ -5,7 +5,7 @@ use Flarum\Discussion\Discussion;
 use Flarum\Post\Post;
 use Flarum\User\User;
 use Xypp\Collector\Data\ConditionAccumulation;
-use Xypp\ForumQuests\ConditionDefinition;
+use Xypp\Collector\ConditionDefinition;
 
 class BestAnswer extends ConditionDefinition
 {

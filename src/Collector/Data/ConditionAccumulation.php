@@ -188,11 +188,14 @@ class ConditionAccumulation
     public function clear()
     {
         $this->data = [];
+        $this->countedDays = [];
         $this->total = 0;
         $this->dirty = true;
         $this->updateFlag = "";
         $this->sorted = true;
         $this->rest = 0;
+        $this->maxValue = 0;
+        $this->days = 0;
     }
     public function resetTotal(int $total)
     {

@@ -2,6 +2,7 @@
 
 namespace Xypp\TrustLevels\Utils;
 
+use Carbon\Carbon;
 use Flarum\Notification\NotificationSyncer;
 use Flarum\User\User;
 use Illuminate\Events\Dispatcher;
@@ -80,7 +81,11 @@ class TrustLevelUtils
             return false;
         }
 
-        DB::transaction(function () use ($user, $trustLevel, $currentLevel) {
+        $levelChanged = ! $currentLevel
+            || (int) $currentLevel->level !== (int) $trustLevel->level
+            || $storedLevel !== (int) $trustLevel->level;
+
+        DB::transaction(function () use ($user, $trustLevel, $currentLevel, $levelChanged) {
             self::syncManagedGroup(
                 $user,
                 $currentLevel?->group_id,
@@ -88,6 +93,9 @@ class TrustLevelUtils
             );
 
             $user->trust_level = (int) $trustLevel->level;
+            if ($levelChanged) {
+                $user->trust_level_changed_at = Carbon::now();
+            }
             $user->save();
         });
 
@@ -126,14 +134,22 @@ class TrustLevelUtils
 
             $visitedLevels[$currentKey] = true;
 
-            if ($nextLevel && self::checkConditionRelated($user, $nextLevel, $changeCondition)) {
+            if (
+                $nextLevel
+                && (int) $nextLevel->level < 4
+                && ! $nextLevel->manual_only
+                && self::checkConditionRelated($user, $nextLevel, $changeCondition)
+            ) {
                 self::setTrustLevel($user, $nextLevel);
                 continue;
             }
 
             if (
                 $currentLevel
-                && (int) $currentLevel->level > 0
+                && (int) $currentLevel->level === 3
+                && ! $currentLevel->manual_only
+                && $currentLevel->allow_downgrade
+                && ! self::isDowngradeGraceActive($user, $currentLevel)
                 && self::checkConditionRelated($user, $currentLevel, $changeCondition) === false
             ) {
                 $previousLevel = self::getPreviousTrustLevel($user);
@@ -152,6 +168,20 @@ class TrustLevelUtils
 
             break;
         }
+    }
+
+    protected static function isDowngradeGraceActive(User $user, TrustLevel $level): bool
+    {
+        $graceDays = max(0, (int) $level->downgrade_grace_days);
+        $changedAt = $user->getAttribute('trust_level_changed_at');
+
+        if ($graceDays === 0 || ! $changedAt) {
+            return false;
+        }
+
+        return Carbon::now()->lessThan(
+            Carbon::parse($changedAt)->addDays($graceDays)
+        );
     }
 
     public static function checkConditionRelated(
@@ -244,6 +274,7 @@ class TrustLevelUtils
                 foreach ($users as $user) {
                     self::syncManagedGroup($user, $from->group_id, $to->group_id);
                     $user->trust_level = (int) $to->level;
+                    $user->trust_level_changed_at = Carbon::now();
                     $user->save();
                     $user->unsetRelation('groups');
                     $user->unsetRelation('trustLevel');
@@ -263,6 +294,7 @@ class TrustLevelUtils
                 foreach ($users as $user) {
                     self::syncManagedGroup($user, $from->group_id, $from->group_id);
                     $user->trust_level = $toLevel;
+                    $user->trust_level_changed_at = Carbon::now();
                     $user->save();
                     $user->unsetRelation('trustLevel');
                 }

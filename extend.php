@@ -23,6 +23,7 @@ use Xypp\Collector\Api\Controller\FrontendConditionUpdateController;
 use Xypp\Collector\Api\Controller\GetCollectorDefinitionController;
 use Xypp\Collector\Api\Controller\ListCustomConditionController;
 use Xypp\Collector\Api\Controller\ListUserConditionsController;
+use Xypp\Collector\Api\Controller\RecordDiscussionViewController;
 use Xypp\Collector\Listener\ConditionModifierListener;
 use Xypp\Collector\Listener\GlobalConditionModifierListener;
 use Xypp\Collector\Provider\CollectorServiceProvider;
@@ -55,6 +56,7 @@ return array_merge([
     new Extend\Locales(__DIR__ . '/locale/collector'),
     new Extend\Locales(__DIR__ . '/locale/collector-integration'),
     (new Extend\Model(User::class))
+        ->cast('trust_level_changed_at', 'datetime')
         ->hasOne('trustLevel', TrustLevel::class, "level", "trust_level"),
     new Extend\ApiResource(TrustLevelResource::class),
     (new Extend\ApiResource(UserResource::class))
@@ -86,6 +88,7 @@ return array_merge([
         ->listen(\Xypp\Collector\Event\UpdateGlobalCondition::class, GlobalConditionModifierListener::class),
     (new Extend\Routes('api'))
         ->post('/collector-condition', 'collector-condition.trigger', FrontendConditionUpdateController::class)
+        ->post('/trust-level-discussion-view', 'trust-level-discussion-view.record', RecordDiscussionViewController::class)
         ->get('/collector-condition', 'collector-condition.index', ListUserConditionsController::class)
         ->get('/collector-data', 'collector-data.index', GetCollectorDefinitionController::class)
         ->post('/custom-condition', 'custom-condition.add', AddCustomConditionController::class)
@@ -108,7 +111,7 @@ return array_merge([
         ->type(TrustLevelChangeNotification::class, ['alert']),
     (new Extend\Settings)
         ->default("xypp-trust-levels.no-auto-update", false)
-        ->default("xypp.collector.max_keep", 30)
+        ->default("xypp.collector.max_keep", 100)
         ->default("xypp.collector.emit_control", "{}")
         ->default("xypp.collector.auto_update", false)
         ->default("xypp.collector.auto_update_hour", 0)
