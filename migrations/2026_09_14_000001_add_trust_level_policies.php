@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\Builder;
-use Illuminate\Support\Facades\DB;
 
 return [
     'up' => function (Builder $schema) {
@@ -17,14 +16,14 @@ return [
         });
 
         // Match the Discourse-style defaults for existing levels.
-        DB::table('trust_levels')
+        $schema->getConnection()->table('trust_levels')
             ->where('level', 3)
             ->update([
                 'allow_downgrade' => true,
                 'downgrade_grace_days' => 14,
             ]);
 
-        DB::table('trust_levels')
+        $schema->getConnection()->table('trust_levels')
             ->where('level', '>=', 4)
             ->update([
                 'allow_downgrade' => false,
