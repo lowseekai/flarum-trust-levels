@@ -1,4 +1,4 @@
-import Extend from 'flarum/common/extenders/index';
+import Extend from 'flarum/common/extenders';
 import TrustLevel from './models/TrustLevel';
 import collectorExtend from '../collector/common/extend';
 

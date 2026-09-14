@@ -1,5 +1,5 @@
 import app from 'flarum/admin/app';
-import Extend from 'flarum/common/extenders/index';
+import Extend from 'flarum/common/extenders';
 import commonExtend from '../common/extend';
 import adminPage from './components/adminPage';
 

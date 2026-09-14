@@ -1,4 +1,4 @@
-import Extend from 'flarum/common/extenders/index';
+import Extend from 'flarum/common/extenders';
 import Condition from './models/Condition';
 import CustomCondition from './models/CustomCondition';
 export default [
