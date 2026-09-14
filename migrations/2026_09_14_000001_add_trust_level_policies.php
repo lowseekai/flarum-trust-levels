@@ -9,11 +9,23 @@ return [
             return;
         }
 
-        $schema->table('trust_levels', function (Blueprint $table) {
-            $table->boolean('allow_downgrade')->default(false);
-            $table->unsignedInteger('downgrade_grace_days')->default(0);
-            $table->boolean('manual_only')->default(false);
-        });
+        if (! $schema->hasColumn('trust_levels', 'allow_downgrade')) {
+            $schema->table('trust_levels', function (Blueprint $table) {
+                $table->boolean('allow_downgrade')->default(false);
+            });
+        }
+
+        if (! $schema->hasColumn('trust_levels', 'downgrade_grace_days')) {
+            $schema->table('trust_levels', function (Blueprint $table) {
+                $table->unsignedInteger('downgrade_grace_days')->default(0);
+            });
+        }
+
+        if (! $schema->hasColumn('trust_levels', 'manual_only')) {
+            $schema->table('trust_levels', function (Blueprint $table) {
+                $table->boolean('manual_only')->default(false);
+            });
+        }
 
         // Match the Discourse-style defaults for existing levels.
         $schema->getConnection()->table('trust_levels')
@@ -35,12 +47,12 @@ return [
             return;
         }
 
-        $schema->table('trust_levels', function (Blueprint $table) {
-            $table->dropColumn([
-                'allow_downgrade',
-                'downgrade_grace_days',
-                'manual_only',
-            ]);
-        });
+        foreach (['allow_downgrade', 'downgrade_grace_days', 'manual_only'] as $column) {
+            if ($schema->hasColumn('trust_levels', $column)) {
+                $schema->table('trust_levels', function (Blueprint $table) use ($column) {
+                    $table->dropColumn($column);
+                });
+            }
+        }
     },
 ];
