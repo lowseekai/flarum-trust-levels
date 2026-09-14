@@ -81,6 +81,9 @@ class CollectorServiceProvider extends AbstractServiceProvider
                 $container->make(Translator::class)
             );
 
+            /** @var ExtensionManager $extensionManager */
+            $extensionManager = $container->make(ExtensionManager::class);
+
             $collector->addDefinition($container->make(UserGroupReward::class));
 
             if ($extensionManager->isEnabled('antoinefr-money')) {
