@@ -15,6 +15,21 @@ use Xypp\Collector\Helper\SettingHelper;
 
 class ConditionDefinitionCollection
 {
+    /**
+     * These legacy conditions are kept out of the public rule editor.
+     * Their old event integrations are no longer part of trust levels.
+     */
+    private const HIDDEN_CONDITION_NAMES = [
+        'user_page_view',
+        'reloads',
+        'email_changed',
+        'avatar_changed',
+        'active_days',
+        'like_recv',
+        'like_send',
+        'best_answer',
+    ];
+
     protected array $conditionsDefinitions = [];
     protected array $globalConditionDefinitions = [];
     public Translator $translator;
@@ -42,7 +57,10 @@ class ConditionDefinitionCollection
     public function getAllConditionName(): array
     {
         $this->loadCustom();
-        return array_keys($this->conditionsDefinitions);
+        return array_values(array_diff(
+            array_keys($this->conditionsDefinitions),
+            self::HIDDEN_CONDITION_NAMES
+        ));
     }
     public function getGlobalConditionName(): array
     {
