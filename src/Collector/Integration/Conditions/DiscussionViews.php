@@ -2,9 +2,9 @@
 
 namespace Xypp\Collector\Integration\Conditions;
 
+use Carbon\Carbon;
 use Flarum\User\User;
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Support\Facades\Date;
 use Xypp\Collector\ConditionDefinition;
 use Xypp\Collector\Data\ConditionAccumulation;
 
@@ -32,7 +32,7 @@ class DiscussionViews extends ConditionDefinition
 
         foreach ($views as $view) {
             if ($view->created_at) {
-                $date = Date::createFromFormat($this->connection->getQueryGrammar()->getDateFormat(), $view->created_at);
+                $date = Carbon::createFromFormat($this->connection->getQueryGrammar()->getDateFormat(), $view->created_at);
                 $conditionAccumulation->updateValue($date, 1);
             }
         }

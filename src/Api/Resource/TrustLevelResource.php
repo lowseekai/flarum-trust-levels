@@ -10,7 +10,7 @@ use Flarum\Api\Sort\SortColumn;
 use Flarum\Foundation\ValidationException;
 use Flarum\Group\Group;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\EmptyResponse;
 use Tobyz\JsonApiServer\Context as JsonApiContext;
@@ -239,7 +239,7 @@ class TrustLevelResource extends AbstractDatabaseResource
     public function delete(object $model, JsonApiContext $context): void
     {
         /** @var TrustLevel $model */
-        DB::transaction(function () use ($model) {
+        resolve(ConnectionInterface::class)->transaction(function () use ($model) {
             TrustLevelUtils::removeUsersForDeletedLevel($model);
             TrustLevelConditionUtils::removeTrustLevelCondition($model);
 
@@ -311,7 +311,7 @@ class TrustLevelResource extends AbstractDatabaseResource
             $newGroupsByLevel[$finalLevels[$id]] = TrustLevelUtils::normalizeGroupId($trustLevel->group_id);
         }
 
-        DB::transaction(function () use ($levels, $finalLevels, $oldGroupsByLevel, $newGroupsByLevel) {
+        resolve(ConnectionInterface::class)->transaction(function () use ($levels, $finalLevels, $oldGroupsByLevel, $newGroupsByLevel) {
             foreach ($levels as $id => $trustLevel) {
                 $newLevel = $finalLevels[$id];
 

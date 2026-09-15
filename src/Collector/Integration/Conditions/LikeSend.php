@@ -2,9 +2,8 @@
 
 namespace Xypp\Collector\Integration\Conditions;
 
+use Carbon\Carbon;
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
 use Xypp\Collector\ConditionDefinition;
 use Xypp\Collector\Data\ConditionAccumulation;
 use Xypp\Collector\RewardDefinition;
@@ -23,7 +22,7 @@ class LikeSend extends ConditionDefinition
 
         $likes = $this->connection->table("post_likes")->where("user_id", $user->id)->get(['created_at']);
         foreach ($likes as $like) {
-            $date = Date::createFromFormat($this->connection->getQueryGrammar()->getDateFormat(), $like->created_at);
+            $date = Carbon::createFromFormat($this->connection->getQueryGrammar()->getDateFormat(), $like->created_at);
             $conditionAccumulation->updateValue($date, 1);
         }
         return $conditionAccumulation->dirty;

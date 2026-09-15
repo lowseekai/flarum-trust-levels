@@ -5,8 +5,8 @@ namespace Xypp\TrustLevels\Utils;
 use Carbon\Carbon;
 use Flarum\Notification\NotificationSyncer;
 use Flarum\User\User;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Events\Dispatcher;
-use Illuminate\Support\Facades\DB;
 use Xypp\Collector\Condition;
 use Xypp\Collector\Event\ConditionChange;
 use Xypp\TrustLevels\Event\TrustLevelChange;
@@ -85,7 +85,7 @@ class TrustLevelUtils
             || (int) $currentLevel->level !== (int) $trustLevel->level
             || $storedLevel !== (int) $trustLevel->level;
 
-        DB::transaction(function () use ($user, $trustLevel, $currentLevel, $levelChanged) {
+        resolve(ConnectionInterface::class)->transaction(function () use ($user, $trustLevel, $currentLevel, $levelChanged) {
             self::syncManagedGroup(
                 $user,
                 $currentLevel?->group_id,

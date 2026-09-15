@@ -2,9 +2,9 @@
 
 namespace Xypp\Collector\Integration\Conditions;
 
+use Carbon\Carbon;
 use Flarum\User\User;
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Support\Facades\Date;
 use Xypp\Collector\ConditionDefinition;
 use Xypp\Collector\Data\ConditionAccumulation;
 
@@ -35,7 +35,7 @@ class RepliedDiscussions extends ConditionDefinition
 
         foreach ($rows as $row) {
             if ($row->first_replied_at) {
-                $date = Date::createFromFormat($this->connection->getQueryGrammar()->getDateFormat(), $row->first_replied_at);
+                $date = Carbon::createFromFormat($this->connection->getQueryGrammar()->getDateFormat(), $row->first_replied_at);
                 $conditionAccumulation->updateValue($date, 1);
             }
         }

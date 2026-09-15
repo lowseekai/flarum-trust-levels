@@ -2,9 +2,8 @@
 
 namespace Xypp\Collector\Integration\Global;
 
+use Carbon\Carbon;
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
 use Xypp\Collector\ConditionDefinition;
 use Xypp\Collector\Data\ConditionAccumulation;
 use Xypp\Collector\GlobalConditionDefinition;
@@ -26,7 +25,7 @@ class GlobalLike extends GlobalConditionDefinition
     {
         $likes = $this->connection->table("post_likes")->get(['created_at']);
         $this->commandContextHelper->withProgressBar($likes, function ($like) use (&$conditionAccumulation) {
-            $date = Date::createFromFormat($this->connection->getQueryGrammar()->getDateFormat(), $like->created_at);
+            $date = Carbon::createFromFormat($this->connection->getQueryGrammar()->getDateFormat(), $like->created_at);
             $conditionAccumulation->updateValue($date, 1);
         });
         return $conditionAccumulation->dirty;
