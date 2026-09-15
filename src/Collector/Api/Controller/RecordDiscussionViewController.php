@@ -5,9 +5,9 @@ namespace Xypp\Collector\Api\Controller;
 use Carbon\Carbon;
 use Flarum\Discussion\DiscussionRepository;
 use Flarum\Http\RequestUtil;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -19,7 +19,8 @@ class RecordDiscussionViewController implements RequestHandlerInterface
 {
     public function __construct(
         protected DiscussionRepository $discussions,
-        protected Dispatcher $events
+        protected Dispatcher $events,
+        protected ConnectionInterface $connection
     ) {
     }
 
@@ -32,7 +33,7 @@ class RecordDiscussionViewController implements RequestHandlerInterface
         $discussion = $this->discussions->findOrFail($id, $actor);
         $now = Carbon::now();
 
-        $inserted = DB::table('trust_level_discussion_views')->insertOrIgnore([
+        $inserted = $this->connection->table('trust_level_discussion_views')->insertOrIgnore([
             'user_id' => $actor->id,
             'discussion_id' => $discussion->id,
             'created_at' => $now,
