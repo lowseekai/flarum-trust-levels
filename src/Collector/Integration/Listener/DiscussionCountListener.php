@@ -74,11 +74,6 @@ class DiscussionCountListener
                 $user,
                 [new ConditionData('discussion_count', $amount)]
             ));
-
-            $this->events->dispatch(new UpdateCondition(
-                $user,
-                [new ConditionData('active_days', $amount)]
-            ));
         }
 
         $this->events->dispatch(new UpdateGlobalCondition(
@@ -98,11 +93,6 @@ class DiscussionCountListener
             $this->events->dispatch(new UpdateCondition(
                 $post->user,
                 [new ConditionData('post_count', $amount)]
-            ));
-
-            $this->events->dispatch(new UpdateCondition(
-                $post->user,
-                [new ConditionData('active_days', $amount)]
             ));
 
             $this->events->dispatch(new UpdateGlobalCondition(

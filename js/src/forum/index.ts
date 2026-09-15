@@ -9,7 +9,6 @@ import { levelPage } from './components/levelPage';
 import levelChangeNotification from './notification/levelChangeNotification';
 import Group from 'flarum/common/models/Group';
 import { init } from '../collector/common/integration';
-import { registerCount } from '../collector/forum/integration/pageCount';
 import { registerDiscussionTracking } from '../collector/forum/integration/discussionTracking';
 
 const groupLoadAttempts = new Set<string>();
@@ -17,7 +16,6 @@ const groupLoadFailures = new Set<string>();
 
 app.initializers.add('xypp/flarum-trust-levels', () => {
   init(app, 'forum');
-  registerCount();
   registerDiscussionTracking();
 
   User.prototype.trustLevel = Model.hasOne<TrustLevel>('trustLevel') as any;

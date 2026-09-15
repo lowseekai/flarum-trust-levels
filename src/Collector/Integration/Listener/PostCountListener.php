@@ -83,10 +83,6 @@ class PostCountListener
             $user,
             $updates
         ));
-        $this->events->dispatch(new UpdateCondition(
-            $user,
-            [new ConditionData('active_days', $amount)]
-        ));
         $this->events->dispatch(new UpdateGlobalCondition(
             [new ConditionData('global.post_count', $amount)]
         ));

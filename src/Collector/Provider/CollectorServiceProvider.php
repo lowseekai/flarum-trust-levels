@@ -13,12 +13,8 @@ use Xypp\Collector\Helper\ConditionHelper;
 use Xypp\Collector\Helper\RewardHelper;
 use Xypp\Collector\Helper\SettingHelper;
 use Xypp\Collector\Integration\Conditions\AccountAge;
-use Xypp\Collector\Integration\Conditions\ActiveDays;
-use Xypp\Collector\Integration\Conditions\BestAnswer;
 use Xypp\Collector\Integration\Conditions\DiscussionCount;
 use Xypp\Collector\Integration\Conditions\DiscussionViews;
-use Xypp\Collector\Integration\Conditions\LikeRecv;
-use Xypp\Collector\Integration\Conditions\LikeSend;
 use Xypp\Collector\Integration\Conditions\PostCount;
 use Xypp\Collector\Integration\Conditions\ReadingTime;
 use Xypp\Collector\Integration\Conditions\RepliedDiscussions;
@@ -49,21 +45,11 @@ class CollectorServiceProvider extends AbstractServiceProvider
 
             // Conditions used by the trust-level rules.
             $collector->addDefinition($container->make(AccountAge::class));
-            $collector->addDefinition($container->make(ActiveDays::class));
             $collector->addDefinition($container->make(DiscussionCount::class));
             $collector->addDefinition($container->make(DiscussionViews::class));
             $collector->addDefinition($container->make(PostCount::class));
             $collector->addDefinition($container->make(ReadingTime::class));
             $collector->addDefinition($container->make(RepliedDiscussions::class));
-
-            if ($extensionManager->isEnabled('flarum-likes')) {
-                $collector->addDefinition($container->make(LikeRecv::class));
-                $collector->addDefinition($container->make(LikeSend::class));
-            }
-
-            if ($extensionManager->isEnabled('fof-best-answer')) {
-                $collector->addDefinition($container->make(BestAnswer::class));
-            }
 
             // Keep global counters available to the collector internals.
             $collector->addGlobalDefinition($container->make(GlobalDiscussionCount::class));
