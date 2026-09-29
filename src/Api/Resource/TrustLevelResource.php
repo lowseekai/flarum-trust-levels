@@ -178,14 +178,15 @@ class TrustLevelResource extends AbstractDatabaseResource
     public function newModel(JsonApiContext $context): object
     {
         $trustLevel = parent::newModel($context);
-        $trustLevel->icon = '';
+        $trustLevel->icon = TrustLevel::defaultIconForLevel(0);
         $trustLevel->conditions = [];
 
         $maxLevel = TrustLevel::query()->max('level');
         $nextLevel = $maxLevel === null ? 0 : ((int) $maxLevel + 1);
-        $trustLevel->allow_downgrade = $nextLevel === 3;
-        $trustLevel->downgrade_grace_days = $nextLevel === 3 ? 14 : 0;
-        $trustLevel->manual_only = $nextLevel >= 4;
+        $trustLevel->icon = TrustLevel::defaultIconForLevel($nextLevel);
+        $trustLevel->allow_downgrade = false;
+        $trustLevel->downgrade_grace_days = 0;
+        $trustLevel->manual_only = false;
 
         return $trustLevel;
     }
@@ -206,7 +207,7 @@ class TrustLevelResource extends AbstractDatabaseResource
             ? TrustLevelUtils::normalizeGroupId($model->getRawOriginal('group_id'))
             : null;
         $model->name = trim((string) $model->name);
-        $model->icon = trim((string) ($model->icon ?? ''));
+        $model->icon = TrustLevel::normalizeIcon($model->icon, (int) $model->level);
         $model->conditions = is_array($model->conditions) ? array_values($model->conditions) : [];
         $model->group_id = TrustLevelUtils::normalizeGroupId($model->group_id);
         $this->applyPolicyConstraints($model);
@@ -339,7 +340,7 @@ class TrustLevelResource extends AbstractDatabaseResource
     {
         $level = (int) $trustLevel->level;
 
-        if ($level < 3) {
+        if ($level === 0) {
             $trustLevel->allow_downgrade = false;
             $trustLevel->downgrade_grace_days = 0;
             $trustLevel->manual_only = false;
@@ -349,15 +350,10 @@ class TrustLevelResource extends AbstractDatabaseResource
 
         $trustLevel->downgrade_grace_days = max(0, min(3650, (int) $trustLevel->downgrade_grace_days));
 
-        if ($level >= 4) {
-            $trustLevel->allow_downgrade = false;
-            $trustLevel->downgrade_grace_days = 0;
-            $trustLevel->manual_only = true;
-
-            return;
-        }
-
         $trustLevel->manual_only = (bool) $trustLevel->manual_only;
         $trustLevel->allow_downgrade = ! $trustLevel->manual_only && (bool) $trustLevel->allow_downgrade;
+        if (! $trustLevel->allow_downgrade) {
+            $trustLevel->downgrade_grace_days = 0;
+        }
     }
 }

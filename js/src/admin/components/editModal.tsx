@@ -11,6 +11,22 @@ import type { ConditionData } from '../../collector/common/types/data';
 import { ConditionConfigure } from '../../collector/admin';
 import Group from 'flarum/common/models/Group';
 
+const ICON_PRESETS = [
+    'fas fa-user',
+    'fas fa-user-plus',
+    'fas fa-seedling',
+    'fas fa-shield-halved',
+    'fas fa-medal',
+    'fas fa-star',
+    'fas fa-crown',
+    'fas fa-gem',
+    'fas fa-trophy',
+    'fas fa-layer-group',
+    'fas fa-fire',
+    'fas fa-users',
+    'fas fa-handshake',
+];
+
 export default class editModal extends Modal<{
     item?: TrustLevel,
     update: (item: TrustLevel) => void,
@@ -37,9 +53,10 @@ export default class editModal extends Modal<{
         const nextLevel = app.store.all<TrustLevel>('trust-levels')
             .reduce((max, trustLevel) => Math.max(max, trustLevel.level()), -1) + 1;
         this.level = nextLevel;
-        this.allow_downgrade = nextLevel === 3;
-        this.downgrade_grace_days = nextLevel === 3 ? 14 : 0;
-        this.manual_only = nextLevel >= 4;
+        this.icon = ICON_PRESETS[0];
+        this.allow_downgrade = false;
+        this.downgrade_grace_days = 0;
+        this.manual_only = false;
 
         if (this.attrs.item) {
             this.conditions = new Stream(this.attrs.item.condition() || []);
@@ -49,7 +66,7 @@ export default class editModal extends Modal<{
             this.group_id = this.attrs.item.group_id() ?? -1;
             this.allow_downgrade = this.attrs.item.allow_downgrade() ?? false;
             this.downgrade_grace_days = this.attrs.item.downgrade_grace_days() ?? 0;
-            this.manual_only = this.attrs.item.manual_only() ?? this.level >= 4;
+            this.manual_only = this.attrs.item.manual_only() ?? false;
         }
 
         app.store.all<Group>('groups').forEach((group) => {
@@ -104,21 +121,23 @@ export default class editModal extends Modal<{
                             }).bind(this)}
                         />
                     </div>
-                    <div className="Form-group">
-                        <label for="xypp-trust-levels-create-ipt-icon">
-                            {app.translator.trans('xypp-trust-levels.admin.create-modal.icon')}
-                        </label>
-                        <div className="xypp-trust-levels-create-icon-preview">
-                            <input
-                                id="xypp-trust-levels-create-ipt-icon"
-                                className="FormControl"
-                                type="text"
-                                value={this.icon}
-                                onchange={((e: InputEvent) => {
-                                    this.icon = (e.target as HTMLInputElement).value;
-                                }).bind(this)}
-                            />
-                            {showIf(!!this.icon, <i className={this.icon} aria-hidden="true"></i>)}
+                    <div className="Form-group xypp-trust-levels-icon-group">
+                        <label>{app.translator.trans('xypp-trust-levels.admin.create-modal.icon')}</label>
+                        <div className="helpText">
+                            {app.translator.trans('xypp-trust-levels.admin.create-modal.icon-help')}
+                        </div>
+                        <div className="xypp-trust-levels-icon-picker" role="group">
+                            {ICON_PRESETS.map((icon) => (
+                                <Button
+                                    className={`Button Button--secondary Button--icon ${this.icon === icon ? 'Button--primary is-selected' : ''}`}
+                                    icon={icon}
+                                    title={icon}
+                                    aria-label={icon}
+                                    onclick={() => {
+                                        this.icon = icon;
+                                    }}
+                                />
+                            ))}
                         </div>
                     </div>
                     <div className="Form-group">
@@ -144,7 +163,7 @@ export default class editModal extends Modal<{
                     <div className="Form-group xypp-trust-levels-policy-group">
                         <Switch
                             state={this.allow_downgrade}
-                            disabled={this.level !== 3 || this.manual_only}
+                            disabled={this.level === 0 || this.manual_only}
                             onchange={((value: boolean) => {
                                 this.allow_downgrade = value;
                             }).bind(this)}
@@ -167,7 +186,7 @@ export default class editModal extends Modal<{
                             min="0"
                             max="3650"
                             value={this.downgrade_grace_days}
-                            disabled={this.level !== 3 || !this.allow_downgrade || this.manual_only}
+                            disabled={this.level === 0 || !this.allow_downgrade || this.manual_only}
                             onchange={((e: InputEvent) => {
                                 const value = parseInt((e.target as HTMLInputElement).value, 10);
                                 this.downgrade_grace_days = Number.isNaN(value) ? 0 : Math.max(0, Math.min(3650, value));
@@ -181,7 +200,7 @@ export default class editModal extends Modal<{
                     <div className="Form-group xypp-trust-levels-policy-group">
                         <Switch
                             state={this.manual_only}
-                            disabled={this.level !== 3}
+                            disabled={this.level === 0}
                             onchange={((value: boolean) => {
                                 this.manual_only = value;
                                 if (value) {
@@ -238,9 +257,9 @@ export default class editModal extends Modal<{
                 name: this.name,
                 icon: this.icon,
                 group_id: this.group_id,
-                allow_downgrade: this.level === 3 && this.allow_downgrade && !this.manual_only,
-                downgrade_grace_days: this.downgrade_grace_days,
-                manual_only: this.level >= 4 || (this.level === 3 && this.manual_only),
+                allow_downgrade: this.level > 0 && this.allow_downgrade && !this.manual_only,
+                downgrade_grace_days: this.level > 0 ? this.downgrade_grace_days : 0,
+                manual_only: this.level > 0 && this.manual_only,
             });
 
             this.attrs.update && this.attrs.update(newItem);

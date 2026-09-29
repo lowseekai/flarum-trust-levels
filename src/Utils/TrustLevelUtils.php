@@ -136,7 +136,6 @@ class TrustLevelUtils
 
             if (
                 $nextLevel
-                && (int) $nextLevel->level < 4
                 && ! $nextLevel->manual_only
                 && self::checkConditionRelated($user, $nextLevel, $changeCondition)
             ) {
@@ -146,7 +145,6 @@ class TrustLevelUtils
 
             if (
                 $currentLevel
-                && (int) $currentLevel->level === 3
                 && ! $currentLevel->manual_only
                 && $currentLevel->allow_downgrade
                 && ! self::isDowngradeGraceActive($user, $currentLevel)

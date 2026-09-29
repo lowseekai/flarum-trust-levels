@@ -21,6 +21,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class TrustLevel extends AbstractModel
 {
+    private const PRESET_ICONS = [
+        'fas fa-user',
+        'fas fa-user-plus',
+        'fas fa-seedling',
+        'fas fa-shield-halved',
+        'fas fa-medal',
+        'fas fa-star',
+        'fas fa-crown',
+        'fas fa-gem',
+        'fas fa-trophy',
+        'fas fa-layer-group',
+        'fas fa-fire',
+        'fas fa-users',
+        'fas fa-handshake',
+    ];
+
     protected $table = 'trust_levels';
 
     protected $fillable = [
@@ -63,11 +79,38 @@ class TrustLevel extends AbstractModel
 
     public function nextLevel(): ?self
     {
-        return static::query()->where('level', (int) $this->level + 1)->first();
+        return static::query()
+            ->where('level', '>', (int) $this->level)
+            ->orderBy('level')
+            ->first();
     }
 
     public function previousLevel(): ?self
     {
-        return static::query()->where('level', (int) $this->level - 1)->first();
+        return static::query()
+            ->where('level', '<', (int) $this->level)
+            ->orderByDesc('level')
+            ->first();
+    }
+
+    public static function presetIcons(): array
+    {
+        return self::PRESET_ICONS;
+    }
+
+    public static function defaultIconForLevel(int $level): string
+    {
+        $icons = self::PRESET_ICONS;
+
+        return $icons[max(0, $level) % count($icons)];
+    }
+
+    public static function normalizeIcon(?string $icon, int $level): string
+    {
+        $icon = trim((string) $icon);
+
+        return in_array($icon, self::PRESET_ICONS, true)
+            ? $icon
+            : self::defaultIconForLevel($level);
     }
 }
