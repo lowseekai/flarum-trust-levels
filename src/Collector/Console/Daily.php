@@ -43,7 +43,10 @@ class Daily extends Command
             if ($this->carbonZoneHelper->now()->hour == $this->settingHelper->autoUpdateHour()) {
                 $this->updateAndRecalculateHelper
                     ->reConfig()
-                    ->abs(false)
+                    // The scheduled run is the daily source-of-truth refresh.
+                    // Rebuild absolute-capable conditions from the database so
+                    // missed events cannot leave trust-level checks stale.
+                    ->abs(true)
                     ->overwrite(false)
                     ->updateGlobal()
                     ->update()

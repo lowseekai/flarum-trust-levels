@@ -18,8 +18,8 @@ xypp-collector:
     use_custom: "Use Custom"
     custom_global_update: "Custom Update with Global"
     custom_normal_update: "Custom Update with normal condition"
-    auto_update: "Auto Update Custom Condition pre day"
-    auto_update_hour: "The Hour when Auto Update happen (In local time)"
+    auto_update: "Automatically recalculate conditions daily"
+    auto_update_hour: "Daily recalculation hour (local time)"
     limited_accumulation_support: "This condition is not able to get all data in recalculate. It will ask you when running the command."
     emit_control:
       title: "Update Emitter and Recalculate"

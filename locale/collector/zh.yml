@@ -19,8 +19,8 @@ xypp-collector:
     custom_global_update: "自定义条件在全局条件更新时更新"
     custom_normal_update: "自定义条件在普通条件更新时更新"
     limited_accumulation_support: "这个条件无法再重算时获取全部信息，将在运行命令时询问你"
-    auto_update: "自动更新自定义条件"
-    auto_update_hour: "自动更新进行的时间小时值 (本地时间)"
+    auto_update: "每日自动重算条件"
+    auto_update_hour: "每日重算时间（本地时间，小时）"
     emit_control:
       title: "触发更新和重算"
       event: "事件"

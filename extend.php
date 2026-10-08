@@ -113,7 +113,7 @@ return array_merge([
         ->default("xypp-trust-levels.no-auto-update", false)
         ->default("xypp.collector.max_keep", 100)
         ->default("xypp.collector.emit_control", "{}")
-        ->default("xypp.collector.auto_update", false)
+        ->default("xypp.collector.auto_update", true)
         ->default("xypp.collector.auto_update_hour", 0)
         ->default("xypp.localize-date.timezone", "UTC")
         ->serializeToForum("xypp.collector.max_keep", "xypp.collector.max_keep")
