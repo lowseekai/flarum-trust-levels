@@ -3,7 +3,12 @@ xypp-trust-levels:
     admin:
     settings: "Settings"
     data: "Data"
-    no-auto-update: "Don't Auto Update with event"
+    no-auto-update: "Don't update trust levels on condition events"
+    no-auto-update-help: "When enabled, posts, likes, and other condition events will not immediately recheck trust levels. The daily scheduled recalculation still runs."
+    auto-update: "Automatically recalculate conditions daily"
+    auto-update-help: "When enabled, supported conditions are recalculated from the database each day and user trust levels are checked."
+    auto-update-hour: "Daily recalculation hour (local time)"
+    auto-update-hour-help: "Choose the hour from 0 to 23. The scheduler checks this setting every hour."
     table:
       id: "#"
       name: "Name"

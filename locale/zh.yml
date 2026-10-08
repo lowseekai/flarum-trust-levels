@@ -3,7 +3,12 @@ xypp-trust-levels:
     admin:
     settings: "设置"
     data: "数据"
-    no-auto-update: "不随着事件更新条件值"
+    no-auto-update: "不随条件事件自动更新信任等级"
+    no-auto-update-help: "开启后，发帖、点赞等条件事件不会立即重新判断信任等级；每日定时重算仍会执行。"
+    auto-update: "每日自动重算条件"
+    auto-update-help: "开启后，系统每天会从数据库重新计算支持重算的条件，并检查用户信任等级。"
+    auto-update-hour: "每日重算时间（本地时间，小时）"
+    auto-update-hour-help: "设置每天执行重算的小时数，范围为 0 到 23。定时任务每小时检查一次。"
     table:
       id: "#"
       name: "名称"

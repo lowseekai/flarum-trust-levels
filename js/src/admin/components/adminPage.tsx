@@ -28,6 +28,27 @@ export default class adminPage extends ExtensionPage {
                 setting: 'xypp-trust-levels.no-auto-update',
                 label: app.translator.trans('xypp-trust-levels.admin.no-auto-update'),
             })}
+            <p className="helpText">
+                {app.translator.trans('xypp-trust-levels.admin.no-auto-update-help')}
+            </p>
+            {this.buildSettingComponent({
+                type: 'boolean',
+                setting: 'xypp.collector.auto_update',
+                label: app.translator.trans('xypp-trust-levels.admin.auto-update'),
+            })}
+            <p className="helpText">
+                {app.translator.trans('xypp-trust-levels.admin.auto-update-help')}
+            </p>
+            {this.buildSettingComponent({
+                type: 'number',
+                setting: 'xypp.collector.auto_update_hour',
+                label: app.translator.trans('xypp-trust-levels.admin.auto-update-hour'),
+                min: 0,
+                max: 23,
+            })}
+            <p className="helpText">
+                {app.translator.trans('xypp-trust-levels.admin.auto-update-hour-help')}
+            </p>
             {this.submitButton()}
             <h2>{app.translator.trans('xypp-trust-levels.admin.data')}</h2>
             <table className="xypp-trust-levels-adminPage-table Table">
